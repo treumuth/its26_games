@@ -1,0 +1,50 @@
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+  color: #f8fafc;
+  overflow-x: hidden;
+  user-select: none;
+}
+
+.orbitron { 
+  font-family: 'Orbitron', sans-serif; 
+}
+
+/* Subway Surfers Style Green Buttons */
+.btn-subway {
+  background: linear-gradient(180deg, #15803d 0%, #166534 100%);
+  border: 3px solid #4ade80;
+  box-shadow: 0 6px 0 #14532d, inset 0 2px 4px rgba(255,255,255,0.4);
+  transition: all 0.1s ease;
+  cursor: pointer;
+}
+.btn-subway:hover {
+  background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 0 #14532d, inset 0 2px 4px rgba(255,255,255,0.5);
+}
+.btn-subway:active, .btn-subway.active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #14532d, inset 0 2px 4px rgba(0,0,0,0.4);
+}
+
+::-webkit-scrollbar { 
+  width: 8px; 
+}
+::-webkit-scrollbar-track { 
+  background: rgba(15, 23, 42, 0.6); 
+  border-radius: 4px; 
+}
+::-webkit-scrollbar-thumb { 
+  background: #38bdf8; 
+  border-radius: 4px; 
+}
+
+@keyframes keyPulse {
+  0% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.15) rotate(10deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+.key-badge { 
+  animation: keyPulse 2s infinite ease-in-out; 
+}
