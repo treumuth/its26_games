@@ -4,423 +4,574 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Horse Racing 🐎</title>
-
 <style>
-* {
-  box-sizing: border-box;
-}
-
+* { box-sizing: border-box; }
 body {
-  background: #164b2b;
-  color: white;
-  font-family: Arial, sans-serif;
-  text-align: center;
-  margin: 0;
-  padding: 20px 10px;
+  background: radial-gradient(ellipse at top, #267044 0%, #164b2b 58%, #103820 100%);
+  color: #f8fafc; font-family: Inter, Arial, sans-serif;
+  text-align: center; margin: 0; padding: 28px 14px 40px;
 }
-
-h1 {
-  color: #ffd166;
-  font-size: 34px;
-}
-
-.panel {
-  max-width: 850px;
-  margin: auto;
-}
-
-.money {
-  font-size: 25px;
-  color: #ffd166;
-  font-weight: bold;
-}
-
+h1 { color: #ffd166; font-size: clamp(28px, 4vw, 42px); margin: 8px 0 14px; letter-spacing: .4px; text-shadow: 0 3px 0 rgba(0,0,0,.18); }
+.panel { max-width: 1050px; margin: auto; }
+.money { display: inline-block; font-size: 25px; color: #ffd166; font-weight: 800; margin: 6px 0 18px; padding: 12px 22px; border: 1px solid rgba(255,209,102,.32); border-radius: 14px; background: rgba(10,35,21,.42); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
 .controls {
-  background: #205a35;
-  padding: 18px;
-  border-radius: 15px;
-  margin: 15px auto;
+  background: linear-gradient(145deg, rgba(35,101,59,.98), rgba(25,76,44,.98));
+  padding: 22px 18px; border: 1px solid rgba(255,255,255,.1); border-radius: 20px;
+  margin: 8px auto 20px; box-shadow: 0 12px 28px rgba(0,0,0,.18);
 }
-
+.controls p { margin: 8px 0 10px; color: #e1f2e5; }
+.difficulty-row { display:flex; justify-content:center; flex-wrap:wrap; gap:8px; margin:14px auto; }
+.difficulty-chip { padding:10px 13px; font-size:14px; background:rgba(255,255,255,.12); color:#fff; box-shadow:none; border:1px solid rgba(255,255,255,.18); }
+.difficulty-chip.active { background:#ffd166; color:#263326; border-color:#ffd166; box-shadow:0 3px 0 #c58b25; }
+.horse-picks { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:16px auto; max-width:760px; }
+.horse-card { position:relative; padding:16px 10px 14px; border:2px solid rgba(255,255,255,.18); border-radius:16px; background:linear-gradient(145deg,#173f2b,#245b3a); color:white; cursor:pointer; box-shadow:0 5px 0 rgba(0,0,0,.18); transition:transform .15s,border-color .15s,background .15s; min-width:0; }
+.horse-card:hover:not(:disabled) { transform:translateY(-3px); border-color:#ffd166; }
+.horse-card.selected { border-color:#ffd166; background:linear-gradient(145deg,#456b35,#284c2d); box-shadow:0 0 0 3px rgba(255,209,102,.18),0 5px 0 rgba(0,0,0,.18); }
+.horse-card:disabled { opacity:.55; cursor:not-allowed; }
+.horse-avatar { font-size:38px; display:block; margin-bottom:5px; filter:drop-shadow(0 3px 2px #102a19); }
+.horse-name { display:block; font-size:18px; font-weight:900; color:#ffe08a; }
+.odds-pill { display:inline-block; padding:5px 9px; border-radius:999px; background:#ffd166; color:#263326; font-size:13px; font-weight:900; }
+.bet-row { display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:4px; margin:8px 0 12px; }
+.bet-chip { padding:8px 13px; font-size:14px; background:#e7f4e8; color:#1c482d; box-shadow:0 3px 0 #9ebfa4; }
+.bet-chip.active { background:#ffd166; box-shadow:0 3px 0 #c58b25; }
+.bet-hint { font-size:13px; color:#d7f5dc; margin:5px 0 0; }
+@media(max-width:600px) {
+  .horse-picks { gap:6px; }
+  .horse-card { padding:12px 5px; }
+  .horse-avatar { font-size:30px; }
+  .horse-name { font-size:15px; }
+  .odds-pill { font-size:11px; padding:4px 6px; }
+}
 select, input, button {
-  padding: 11px;
-  margin: 5px;
-  border-radius: 7px;
-  border: none;
-  font-size: 16px;
+  padding: 12px 14px; margin: 6px; border-radius: 10px; border: 1px solid rgba(255,255,255,.13);
+  font-size: 16px; outline: none; transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
 }
-
-button {
-  background: #ffd166;
-  color: #222;
-  font-weight: bold;
-  cursor: pointer;
+select, input { background: #f8fafc; color: #17251b; min-width: 180px; }
+select:focus, input:focus { box-shadow: 0 0 0 3px rgba(255,209,102,.38); }
+button { background: linear-gradient(180deg, #ffe08a, #ffc94e); color: #25251f; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #c58b25; }
+button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 0 #c58b25; }
+button:active:not(:disabled) { transform: translateY(1px); box-shadow: 0 2px 0 #c58b25; }
+button:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
+#result { display: inline-block; min-height: 30px; margin: 8px auto 0; padding: 9px 16px; color: #ffe08a; font-size: 20px; font-weight: 800; border-radius: 12px; background: rgba(7,28,16,.28); }
+#status { color: #d7f5dc; margin: 9px 0 16px; }
+#stats { display: inline-block; padding: 10px 18px; border-radius: 999px; background: rgba(7,28,16,.35); color: #f8fafc; font-weight: 700; border: 1px solid rgba(255,255,255,.1); }
+.track-wrap {
+  width: 100%; max-width: 900px; margin: 22px auto 18px; padding: 9px;
+  background: linear-gradient(135deg, #e6c28a, #9b6d3d); border: 2px solid #f4d9a7; border-radius: 18px;
+  box-shadow: 0 16px 36px rgba(0,0,0,.28), 0 0 0 4px rgba(92,57,29,.55); overflow: hidden;
 }
-
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .track {
-  width: 100%;
-  max-width: 760px;
-  height: 380px;
-  margin: 25px auto;
-  position: relative;
-  overflow: hidden;
-  background: #367b3c;
-  border: 18px solid #b58b54;
-  border-radius: 50%;
-  box-shadow: 0 0 0 4px #e3c18a,
-              inset 0 0 0 4px #e3c18a;
+  position: relative; width: 100%; aspect-ratio: 1.72 / 1;
+  min-height: 245px; overflow: hidden; background: #a62b2e; border-radius: 8px;
 }
-
-.lane {
-  position: absolute;
-  border: 2px dashed rgba(255,255,255,0.65);
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-.lane1 {
-  inset: 18px;
-}
-
-.lane2 {
-  inset: 48px;
-}
-
-.lane3 {
-  inset: 78px;
-}
-
+.track-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
 .center {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  color: rgba(255,255,255,0.8);
-  font-size: 22px;
-  font-weight: bold;
-  pointer-events: none;
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+  color: rgba(255,255,255,.86); font-size: clamp(12px, 2vw, 20px);
+  font-weight: bold; pointer-events: none; line-height: 1.5;
 }
-
+.finish {
+  position: absolute; top: 10.5%; left: 50%; height: 31.2%; width: 10px;
+  transform: translateX(-50%);
+  background: repeating-conic-gradient(#fff 0% 25%, #222 0% 50%) 0 / 8px 8px;
+  border-left: 1px solid white; border-right: 1px solid white;
+  z-index: 4; pointer-events: none;
+}
 .horse {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 5;
-  font-size: 27px;
-  white-space: nowrap;
-  will-change: left, top;
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+  z-index: 5; font-size: clamp(17px, 2.5vw, 27px); white-space: nowrap;
+  will-change: left, top; text-shadow: 0 1px 2px #222;
 }
-
-.horse span {
-  display: inline-block;
-  background: rgba(0,0,0,0.65);
-  color: white;
-  border-radius: 5px;
-  padding: 3px 5px;
-  font-size: 11px;
-  vertical-align: middle;
+.horse span { display: inline-block; background: rgba(0,0,0,.72); color: white; border-radius: 5px; padding: 3px 5px; font-size: 10px; vertical-align: middle; }
+.leaderboard { max-width:760px; margin:26px auto 0; padding:20px; text-align:left; border:1px solid rgba(255,209,102,.28); border-radius:18px; background:rgba(7,28,16,.42); box-shadow:0 12px 28px rgba(0,0,0,.16); }
+.leaderboard h2 { margin:0 0 5px; text-align:center; color:#ffd166; }
+.leaderboard-note { text-align:center; color:#d7f5dc; font-size:13px; margin:0 0 15px; }
+.player-row { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:5px; }
+.player-row label { color:#f8fafc; font-weight:700; }
+.player-row input { min-width:120px; width:180px; }
+.leaderboard-list { list-style:none; padding:0; margin:16px 0 0; }
+.leaderboard-list li { display:flex; justify-content:space-between; gap:12px; padding:10px 12px; margin:6px 0; border-radius:10px; background:rgba(255,255,255,.07); font-weight:700; }
+.leaderboard-list li:first-child { background:rgba(255,209,102,.18); color:#ffe08a; }
+.leaderboard-list .empty { justify-content:center; color:#d7f5dc; font-weight:400; }
+@media (max-width: 550px) {
+  body { padding: 12px 6px; }
+  h1 { font-size: 27px; }
+  .track-wrap { padding: 4px; }
+  .track { min-height: 210px; }
+  .horse span { font-size: 8px; padding: 2px 3px; }
 }
+.name-gate { position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(5,20,11,.88); backdrop-filter:blur(8px); }
+.name-gate-card { width:min(100%,440px); padding:30px 24px; border:1px solid rgba(255,209,102,.45); border-radius:22px; background:linear-gradient(145deg,#23653b,#123a24); box-shadow:0 22px 70px rgba(0,0,0,.45); }
+.name-gate-card h2 { color:#ffd166; margin:0 0 10px; font-size:28px; }
+.name-gate-card p { color:#e1f2e5; line-height:1.5; }
+.name-gate-card input { width:min(100%,300px); min-width:0; }
+.name-error { min-height:20px; color:#ffd166 !important; font-size:14px; margin:4px 0 0 !important; }
+.name-gate[hidden], .panel[hidden] { display:none !important; }
 
-#result {
-  min-height: 32px;
-  color: #ffe08a;
+/* Põnev võistluse algus */
+.track { isolation:isolate; }
+.race-countdown {
+  position:absolute; inset:0; z-index:20; display:none; align-items:center; justify-content:center;
+  flex-direction:column; gap:7px; color:#fff; text-shadow:0 4px 18px rgba(0,0,0,.75);
+  background:radial-gradient(ellipse at center, rgba(9,30,18,.42), rgba(5,18,10,.72));
+  backdrop-filter:blur(2px); pointer-events:none;
 }
-
-#status {
-  color: #d7f5dc;
-}
-
-@media (max-width: 500px) {
-  .track {
-    height: 280px;
-    border-width: 12px;
-  }
-
-  .lane1 { inset: 12px; }
-  .lane2 { inset: 36px; }
-  .lane3 { inset: 60px; }
-
-  .horse { font-size: 21px; }
-  .horse span { font-size: 9px; }
-}
+.race-countdown.show { display:flex; animation:countdownFade .22s ease-out both; }
+.race-countdown span { font-size:clamp(64px,12vw,120px); line-height:.95; font-weight:1000; color:#ffd166; -webkit-text-stroke:2px rgba(65,40,8,.55); animation:countPulse .65s ease-in-out infinite alternate; }
+.race-countdown small { font-size:clamp(16px,3vw,27px); font-weight:1000; letter-spacing:.18em; color:#fff; }
+.start-lights { display:flex; gap:9px; margin-bottom:8px; padding:8px 13px; border-radius:999px; background:rgba(0,0,0,.65); border:1px solid rgba(255,255,255,.2); }
+.start-lights i { display:block; width:15px; height:15px; border-radius:50%; background:#572b2b; border:2px solid rgba(255,255,255,.3); box-shadow:inset 0 2px 4px rgba(0,0,0,.55); }
+.race-countdown.show:not(.go) .start-lights i { animation:lightReady .65s infinite alternate; }
+.race-countdown.go .start-lights i { background:#72f29a; box-shadow:0 0 16px #72f29a; }
+.track.race-starting .horse { animation:horseReady .28s ease-in-out infinite alternate; }
+.track.race-starting .finish { filter:drop-shadow(0 0 8px #ffd166); }
+.track.race-go { animation:trackGo .45s ease-out; }
+@keyframes countPulse { from { transform:scale(.94); } to { transform:scale(1.05); } }
+@keyframes countdownFade { from { opacity:0; } to { opacity:1; } }
+@keyframes lightReady { from { background:#762c25; box-shadow:0 0 4px #d33b2c; } to { background:#ff594b; box-shadow:0 0 15px #ff594b; } }
+@keyframes horseReady { from { translate:0 0; } to { translate:0 -3px; } }
+@keyframes trackGo { 0% { filter:brightness(1); } 35% { filter:brightness(1.45); } 100% { filter:brightness(1); } }
+@media (prefers-reduced-motion: reduce) { .race-countdown span, .race-countdown.show:not(.go) .start-lights i, .track.race-starting .horse { animation:none; } }
 </style>
 </head>
-
 <body>
-<div class="panel">
-
-<h1>🐎 Horse Racing 🏁</h1>
-
-<h2 class="money">
-  💰 Raha: $<span id="money">100</span>
-</h2>
-
-<div class="controls">
-  <p>Vali hobune, kes sinu arvates võidab!</p>
-
-  <select id="horseChoice">
-    <option value="0">🐎 Välk (2x)</option>
-    <option value="1">🐴 Äike (3x)</option>
-    <option value="2">🏇 Torm (5x)</option>
-  </select>
-
-  <p>Vali panuse suurus:</p>
-
-  <input id="bet" type="number"
-         min="1" step="1" value="10"
-         placeholder="Panus $">
-
-  <br>
-
-  <button id="raceButton" onclick="race()">
-    🏁 Alusta võistlust!
-  </button>
-
-  <button id="resetButton" onclick="resetGame()">
-    🔄 Uus mäng
-  </button>
+<div class="name-gate" id="nameGate" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
+  <div class="name-gate-card">
+    <h2 id="gateTitle">🐎 Tere tulemast!</h2>
+    <p>Enne mängimist vali endale mängijanimi. Sinu nimi kuvatakse raha edetabelis.</p>
+    <form id="startNameForm">
+      <input id="startPlayerName" type="text" maxlength="18" placeholder="Sisesta mängijanimi" autocomplete="nickname" required autofocus>
+      <br><button id="startGameButton" type="button">🎮 Alusta mängimist</button>
+      <p class="name-error" id="nameError" aria-live="polite"></p>
+    </form>
+  </div>
 </div>
-
-<h3 id="result">Valmis võistluseks?</h3>
-<p id="status">Vali hobune ja vajuta alustamiseks!</p>
-
-<div class="track" id="track">
-  <div class="lane lane1"></div>
-  <div class="lane lane2"></div>
-  <div class="lane lane3"></div>
-  <div class="center">🏆<br>FINIŠ</div>
+<div class="panel" id="gamePage" hidden>
+  <h1>🐎 Horse Racing 🏁</h1>
+  <h2 class="money">💰 Raha: $<span id="money">100</span></h2>
+  <div class="controls">
+    <p>🎮 Vali raskusaste. Raskemal tasemel on rohkem hobuseid ja suuremad võidukordajad!</p>
+    <div class="difficulty-row">
+      <button type="button" class="difficulty-chip" data-mode="easy" onclick="setDifficulty('easy')">🟢 Lihtne · 3 hobust</button>
+      <button type="button" class="difficulty-chip active" data-mode="normal" onclick="setDifficulty('normal')">🟡 Tavaline · 5 hobust</button>
+      <button type="button" class="difficulty-chip" data-mode="hard" onclick="setDifficulty('hard')">🔴 Raske · 6 hobust</button>
+    </div>
+    <p id="difficultyHint" class="bet-hint">Tavaline: 5 hobust ja tasakaalus võidukordajad.</p>
+    <div class="horse-picks" id="horsePicks"></div>
+    <p>💰 Kui palju soovid panustada?</p>
+    <div class="bet-row" aria-label="Kiirpanused">
+      <button type="button" class="bet-chip" onclick="setBet(5)">$5</button>
+      <button type="button" class="bet-chip active" onclick="setBet(10)">$10</button>
+      <button type="button" class="bet-chip" onclick="setBet(25)">$25</button>
+      <button type="button" class="bet-chip" onclick="setBet(50)">$50</button>
+      <button type="button" class="bet-chip" onclick="setMaxBet()">ALL IN</button>
+    </div>
+    <input id="bet" type="number" min="1" step="1" value="10" placeholder="Panus $" oninput="updateBetChips()">
+    <p class="bet-hint" id="betHint">Valitud panus: $10 · Võidu korral saad kokku $20</p>
+    <br>
+    <button id="raceButton" onclick="race()">🏁 Alusta võistlust!</button>
+    <button id="resetButton" onclick="resetGame()">🔄 Uus mäng</button>
+  </div>
+  <h3 id="result">Valmis võistluseks?</h3>
+  <p id="status">Vali hobune ja vajuta alustamiseks!</p>
+  <div class="track-wrap">
+    <div class="track" id="track">
+      <svg class="track-svg" viewBox="0 0 900 520" preserveAspectRatio="none" aria-label="Staadionikujuline jooksurada">
+        <path d="M 260 55 H 640 A 205 205 0 0 1 640 465 H 260 A 205 205 0 0 1 260 55 Z" fill="#a62b2e" stroke="#f8ead7" stroke-width="5"/>
+        <path d="M 260 82 H 640 A 178 178 0 0 1 640 438 H 260 A 178 178 0 0 1 260 82 Z" fill="none" stroke="#fff4e8" stroke-width="2.5"/>
+        <path d="M 260 109 H 640 A 151 151 0 0 1 640 411 H 260 A 151 151 0 0 1 260 109 Z" fill="none" stroke="#fff4e8" stroke-width="2.5"/>
+        <path d="M 260 136 H 640 A 124 124 0 0 1 640 384 H 260 A 124 124 0 0 1 260 136 Z" fill="none" stroke="#fff4e8" stroke-width="2.5"/>
+        <path d="M 260 163 H 640 A 97 97 0 0 1 640 357 H 260 A 97 97 0 0 1 260 163 Z" fill="none" stroke="#fff4e8" stroke-width="2.5"/>
+        <path d="M 260 190 H 640 A 70 70 0 0 1 640 330 H 260 A 70 70 0 0 1 260 190 Z" fill="none" stroke="#fff4e8" stroke-width="2.5"/>
+        <path d="M 260 217 H 640 A 43 43 0 0 1 640 303 H 260 A 43 43 0 0 1 260 217 Z" fill="none" stroke="#fff4e8" stroke-width="2.5"/>
+        <path d="M 450 55 V 217 M 450 303 V 465" stroke="#fff4e8" stroke-width="2.5"/>
+      </svg>
+      <div class="center">🏆<br>FINISH</div>
+      <div class="finish" aria-hidden="true"></div>
+      <div class="race-countdown" id="raceCountdown" aria-live="assertive">
+        <div class="start-lights" aria-hidden="true"><i></i><i></i><i></i></div>
+        <span id="countdownNumber">3</span><small>VALMIS OLLA!</small>
+      </div>
+    </div>
+  </div>
+  <p>🏇 Kõik hobused jooksevad oma rajal terve ringi. 1. koht saab täisauhinna, 2. koht 50% ja 3. koht 25%.</p>
+  <p id="stats">Võite: 0 | Võistlusi: 0</p>
+  <section class="leaderboard">
+    <h2>🏆 Raha edetabel</h2>
+    <p class="leaderboard-note">Salvestab parima saldo selles brauseris.</p>
+    <div class="player-row">
+      <label for="playerName">Sinu mängijanimi:</label>
+      <input id="playerName" type="text" maxlength="18" placeholder="Mängijanimi" value="">
+      <button type="button" onclick="savePlayerName()">Salvesta nimi</button>
+    </div>
+    <ol id="leaderboardList" class="leaderboard-list"></ol>
+  </section>
 </div>
-
-<p>🏇 Esimene finišisse jõudnud hobune võidab!</p>
-<p id="stats">Võite: 0 | Võistlusi: 0</p>
-
-</div>
-
 <script>
-let money = 100;
-let wins = 0;
-let races = 0;
-let running = false;
-let animation = null;
-
-const horses = [
-  {
-    name: "Välk",
-    emoji: "🐎",
-    odds: 2,
-    lane: 0,
-    progress: 0,
-    speed: 0
-  },
-  {
-    name: "Äike",
-    emoji: "🐴",
-    odds: 3,
-    lane: 1,
-    progress: 0,
-    speed: 0
-  },
-  {
-    name: "Torm",
-    emoji: "🏇",
-    odds: 5,
-    lane: 2,
-    progress: 0,
-    speed: 0
-  }
+let money = 100, wins = 0, races = 0, running = false, animation = null;
+let finishOrder = [];
+const LEADERBOARD_KEY = "horseRacingLeaderboard_v1";
+const horseRoster = [
+  { name: "Välk", emoji: "🐎" },
+  { name: "Äike", emoji: "🐴" },
+  { name: "Torm", emoji: "🏇" },
+  { name: "Säde", emoji: "🐎" },
+  { name: "Müristaja", emoji: "🐴" },
+  { name: "Komeet", emoji: "🏇" }
 ];
-
+const difficultyModes = {
+  easy: { count: 3, odds: [2, 3, 4], label: "Lihtne", hint: "3 hobust · väiksem konkurents ja mõõdukad võidud." },
+  normal: { count: 5, odds: [2, 3, 4, 5, 6], label: "Tavaline", hint: "5 hobust · tasakaalus väljakutse ja võidukordajad." },
+  hard: { count: 6, odds: [3, 4, 5, 6, 7, 8], label: "Raske", hint: "6 hobust · kõige rohkem konkurentsi ja suuremad võimalikud võidud!" }
+};
+let currentDifficulty = "normal";
+let horses = [];
 const track = document.getElementById("track");
 const moneyText = document.getElementById("money");
 const result = document.getElementById("result");
 const status = document.getElementById("status");
 const raceButton = document.getElementById("raceButton");
+let selectedHorse = 0, nameReady = false;
 
+function startWithName(event) {
+  if (event) event.preventDefault();
+  const input = document.getElementById("startPlayerName");
+  const name = (input.value || "").trim().slice(0, 18);
+  if (!name) {
+    document.getElementById("nameError").textContent = "Palun sisesta mängijanimi, et jätkata.";
+    input.focus();
+    return false;
+  }
+  nameReady = true;
+  document.getElementById("playerName").value = name;
+  try { localStorage.setItem("horseRacingPlayerName_v1", name); } catch (e) {}
+  document.getElementById("nameGate").hidden = true;
+  const gamePage = document.getElementById("gamePage");
+  gamePage.hidden = false;
+  gamePage.style.display = "block";
+  updateLeaderboard();
+  status.textContent = "Tere, " + name + "! Vali hobune ja alusta võistlust.";
+  drawHorses();
+  updateUI();
+  updateBetHint();
+  return false;
+}
+function selectHorse(index) {
+  if (running) return;
+  selectedHorse = index;
+  document.querySelectorAll(".horse-card").forEach((card, i) => card.classList.toggle("selected", i === index));
+  updateBetHint();
+}
+function setBet(amount) {
+  if (running) return;
+  document.getElementById("bet").value = Math.min(amount, money) || 1;
+  updateBetChips();
+}
+function setMaxBet() { setBet(money); }
+function updateBetChips() {
+  const amount = Number(document.getElementById("bet").value);
+  document.querySelectorAll(".bet-chip").forEach(b => b.classList.remove("active"));
+  const match = [...document.querySelectorAll(".bet-chip")].find(b => b.textContent === "$" + amount);
+  if (match) match.classList.add("active");
+  updateBetHint();
+}
+function updateBetHint() {
+  const amount = Number(document.getElementById("bet").value);
+  const h = horses[selectedHorse];
+  const hint = document.getElementById("betHint");
+  if (!hint) return;
+  if (!Number.isInteger(amount) || amount < 1) hint.textContent = "Sisesta panus vähemalt $1.";
+  else if (amount > money) hint.textContent = "Sul pole nii palju raha. Sinu saldo: $" + money + ".";
+  else if (h) hint.textContent = "Valitud panus: $" + amount + " · " + h.name + " võidu korral saad kokku $" + (amount * h.odds);
+}
 function createHorses() {
-  horses.forEach((h, i) => {
+  const picks = document.getElementById("horsePicks");
+  picks.innerHTML = "";
+  track.querySelectorAll(".horse").forEach(el => el.remove());
+  horses.forEach((horse, i) => {
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "horse-card" + (i === selectedHorse ? " selected" : "");
+    card.innerHTML = '<span class="horse-avatar"></span><span class="horse-name"></span><span class="odds-pill"></span>';
+    card.querySelector(".horse-avatar").textContent = horse.emoji;
+    card.querySelector(".horse-name").textContent = horse.name;
+    card.querySelector(".odds-pill").textContent = "Võidukordaja " + horse.odds + "×";
+    card.addEventListener("click", () => selectHorse(i));
+    picks.appendChild(card);
     const el = document.createElement("div");
     el.className = "horse";
     el.id = "horse" + i;
-    el.innerHTML = h.emoji + " <span>" + h.name + "</span>";
+    el.innerHTML = horse.emoji + " <span>" + horse.name + "</span>";
     track.appendChild(el);
   });
-
   drawHorses();
 }
+function setDifficulty(mode) {
+  if (running || !difficultyModes[mode]) return;
+  currentDifficulty = mode;
+  const settings = difficultyModes[mode];
+  horses = horseRoster.slice(0, settings.count).map((horse, i) => ({
+    ...horse, odds: settings.odds[i], lane: i, progress: 0, speed: 0
+  }));
+  selectedHorse = 0;
+  document.querySelectorAll(".difficulty-chip").forEach(button => button.classList.toggle("active", button.dataset.mode === mode));
+  document.getElementById("difficultyHint").textContent = settings.label + ": " + settings.hint;
+  createHorses();
+  updateBetHint();
+}
 
+/* Hobuse asukoht arvutatakse raja keskjoone järgi.
+   Progress 0 = stardijoon; progress 1 = täpselt üks täisring ja tagasi stardijoonele. */
+function stadiumPoint(progress, laneIndex) {
+  const w = track.clientWidth, h = track.clientHeight;
+  const scaleX = w / 900, scaleY = h / 520;
+
+  // Rajal on 6 päris sõidurada. Iga hobune hoiab kogu võistluse sama raja keskjoont.
+  const laneSlotsByCount = {
+    3: [0, 2, 5],
+    5: [0, 1, 3, 4, 5],
+    6: [0, 1, 2, 3, 4, 5]
+  };
+  const laneSlot = (laneSlotsByCount[horses.length] || [0, 1, 2, 3, 4, 5])[laneIndex] ?? laneIndex;
+  const inset = 13.5 + laneSlot * 27;
+
+  const left = 260, right = 640;
+  const top = 55 + inset, bottom = 465 - inset;
+  const radius = (bottom - top) / 2;
+  const straight = right - left;
+  const arcLength = Math.PI * radius;
+  const total = 2 * straight + 2 * arcLength;
+
+  // Ära kasuta progressi modulo't: finišis ei tohi hobune uuesti ringi algusesse hüpata.
+  const safeProgress = Math.max(0, Math.min(1, progress));
+  let d = straight / 2 + safeProgress * total;
+  if (d >= total) d -= total; // progress 1 asetab hobuse täpselt stardijoonele.
+
+  let x, y;
+  if (d < straight) {
+    x = left + d; y = top;
+  } else if ((d -= straight) < arcLength) {
+    const angle = -Math.PI / 2 + d / radius;
+    x = right + radius * Math.cos(angle);
+    y = (top + bottom) / 2 + radius * Math.sin(angle);
+  } else if ((d -= arcLength) < straight) {
+    x = right - d; y = bottom;
+  } else {
+    d -= straight;
+    const angle = Math.PI / 2 + d / radius;
+    x = left + radius * Math.cos(angle);
+    y = (top + bottom) / 2 + radius * Math.sin(angle);
+  }
+  return { x: x * scaleX, y: y * scaleY };
+}
 function drawHorses() {
-  const w = track.clientWidth;
-  const h = track.clientHeight;
-
   horses.forEach((horse, i) => {
     const el = document.getElementById("horse" + i);
-
-    // Iga hobune jookseb oma ovaalsel rajal.
-    const rx = w * [0.43, 0.35, 0.27][i];
-    const ry = h * [0.43, 0.35, 0.27][i];
-
-    const angle =
-      horse.progress * Math.PI * 2 - Math.PI / 2;
-
-    const x = w / 2 + rx * Math.cos(angle);
-    const y = h / 2 + ry * Math.sin(angle);
-
-    el.style.left = x + "px";
-    el.style.top = y + "px";
+    if (!el) return;
+    const p = stadiumPoint(horse.progress, i);
+    el.style.left = p.x + "px";
+    el.style.top = p.y + "px";
   });
 }
-
 function updateUI() {
   moneyText.textContent = money;
-  document.getElementById("stats").textContent =
-    "Võite: " + wins + " | Võistlusi: " + races;
+  document.getElementById("stats").textContent = "Võite: " + wins + " | Võistlusi: " + races;
 }
-
+function getLeaderboard() {
+  try { return JSON.parse(localStorage.getItem(LEADERBOARD_KEY) || "[]"); }
+  catch (e) { return []; }
+}
+function currentPlayerName() {
+  return (document.getElementById("playerName").value || "Mängija").trim().slice(0, 18) || "Mängija";
+}
+function savePlayerName() {
+  const name = currentPlayerName();
+  document.getElementById("playerName").value = name;
+  try { localStorage.setItem("horseRacingPlayerName_v1", name); } catch (e) {}
+  updateLeaderboard();
+  status.textContent = "Mängijanimi salvestatud: " + name;
+}
+function updateLeaderboard() {
+  const name = currentPlayerName();
+  let board = getLeaderboard();
+  const existing = board.find(entry => entry.name.toLowerCase() === name.toLowerCase());
+  if (existing) existing.money = Math.max(existing.money, money);
+  else board.push({ name, money });
+  board.sort((a, b) => b.money - a.money);
+  board = board.slice(0, 10);
+  try { localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(board)); } catch (e) {}
+  const list = document.getElementById("leaderboardList");
+  list.innerHTML = "";
+  board.forEach((entry, index) => {
+    const li = document.createElement("li");
+    const label = document.createElement("span");
+    const score = document.createElement("span");
+    label.textContent = (index + 1) + ". " + entry.name;
+    score.textContent = "$" + entry.money;
+    li.append(label, score);
+    list.appendChild(li);
+  });
+}
 function race() {
+  if (!nameReady) {
+    document.getElementById("nameGate").hidden = false;
+    document.getElementById("startPlayerName").focus();
+    return;
+  }
   if (running) return;
-
   const bet = Number(document.getElementById("bet").value);
-  const chosen = Number(
-    document.getElementById("horseChoice").value
-  );
-
-  if (!Number.isFinite(bet) ||
-      bet <= 0 ||
-      !Number.isInteger(bet) ||
-      bet > money) {
+  const chosen = selectedHorse;
+  if (!Number.isFinite(bet) || bet <= 0 || !Number.isInteger(bet) || bet > money) {
     result.textContent = "Sisesta sobiv panus!";
     return;
   }
-
   money -= bet;
   updateUI();
-
   running = true;
   raceButton.disabled = true;
   document.getElementById("resetButton").disabled = true;
-  document.getElementById("horseChoice").disabled = true;
+  document.querySelectorAll(".horse-card, .bet-chip").forEach(el => el.disabled = true);
   document.getElementById("bet").disabled = true;
-
-  result.textContent = "🏁 Võistlus algab!";
-  status.textContent = "Hobused jooksevad... Kes jõuab esimesena finišisse?";
-
+  result.textContent = "🏇 Hobused võtavad stardipositsioonid sisse…";
+  status.textContent = "Valmistu! Stardituled süttivad.";
+  track.classList.add("race-starting");
+  raceButton.textContent = "⏳ Stardiks valmistumine…";
+  finishOrder = [];
   horses.forEach(h => {
     h.progress = 0;
-
-    // Iga hobuse kiirus muutub võistluste vahel.
-    h.speed = 0.000075 + Math.random() * 0.000035;
+    h.finished = false;
+    h.finishPlace = 0;
+    // Igal hobusel on kogu ringi jaoks kindel kiirus; juhuslik kõikumine ei saa teda peatada.
+    h.duration = 7200 + Math.random() * 3000;
+    h.speed = 1 / h.duration;
   });
-
-  let lastTime = null;
-
-  function animate(time) {
-    if (!running) return;
-
-    if (lastTime === null) lastTime = time;
-
-    // Väldib suuri hüppeid, kui brauser hetkeks aeglustub.
-    const delta = Math.min(time - lastTime, 40);
-    lastTime = time;
-
-    horses.forEach(h => {
-      if (h.progress < 1) {
-        // Väikesed juhuslikud kiirusemuutused.
-        const variation = 0.85 + Math.random() * 0.3;
-        h.progress += h.speed * delta * variation;
-      }
-    });
-
-    drawHorses();
-
-    const winner = horses.find(h => h.progress >= 1);
-
-    if (winner) {
-      finishRace(winner, chosen, bet);
-      return;
+  const countdown = document.getElementById("raceCountdown");
+  const countdownNumber = document.getElementById("countdownNumber");
+  countdown.classList.remove("go");
+  countdown.classList.add("show");
+  let count = 3;
+  countdownNumber.textContent = count;
+  countdown.querySelector("small").textContent = "HOIAME HOBUSEID…";
+  status.textContent = "3… 2… 1… Oota stardisignaali!";
+  const countdownTimer = setInterval(() => {
+    count--;
+    if (count > 0) {
+      countdownNumber.textContent = count;
+      countdown.querySelector("small").textContent = count === 2 ? "VALMIS…" : "KOHTADELE…";
+    } else {
+      clearInterval(countdownTimer);
+      countdown.classList.add("go");
+      countdownNumber.textContent = "🏁";
+      countdown.querySelector("small").textContent = "LÄKS!";
+      result.textContent = "🚦 START! JOOKSKE!";
+      status.textContent = "Hobused jooksevad! Esimesena terve ringi läbiv hobune võidab.";
+      track.classList.remove("race-starting");
+      track.classList.add("race-go");
+      raceButton.textContent = "🏇 Võistlus käib…";
+      setTimeout(() => {
+        countdown.classList.remove("show", "go");
+        countdown.querySelector("small").textContent = "VALMIS OLLA!";
+        track.classList.remove("race-go");
+        startAnimation();
+      }, 520);
     }
+  }, 800);
 
-    requestAnimationFrame(animate);
+  function startAnimation() {
+    let lastTime = null;
+    function animate(time) {
+      if (!running) return;
+      if (lastTime === null) lastTime = time;
+      const delta = Math.min(time - lastTime, 40);
+      lastTime = time;
+      horses.forEach(h => {
+        if (!h.finished) {
+          h.progress = Math.min(1, h.progress + h.speed * delta);
+          if (h.progress >= 1) {
+            // Fikseeri täpne finišipositsioon: üks täisring, mitte lisaring.
+            h.progress = 1;
+            h.finished = true;
+            h.finishPlace = finishOrder.length + 1;
+            finishOrder.push(h);
+          }
+        }
+      });
+      drawHorses();
+      if (finishOrder.length === horses.length) {
+        finishRace(finishOrder[0], chosen, bet, finishOrder.slice());
+        return;
+      }
+      animation = requestAnimationFrame(animate);
+    }
+    animation = requestAnimationFrame(animate);
   }
-
-  animation = requestAnimationFrame(animate);
 }
-
-function finishRace(winner, chosen, bet) {
+function finishRace(winner, chosen, bet, results = finishOrder.slice()) {
   running = false;
+  track.classList.remove("race-starting", "race-go");
+  raceButton.textContent = "🏁 Alusta võistlust!";
   races++;
-
-  // Lõpeta kõik hobused ja näita tulemust alles nüüd.
-  horses.forEach(h => {
-    if (h === winner) h.progress = 1;
-  });
-
-  drawHorses();
-
-  const winnerIndex = horses.indexOf(winner);
-
-  if (winnerIndex === chosen) {
-    const prize = bet * winner.odds;
+  const place = results.findIndex(h => h === horses[chosen]) + 1;
+  const chosenHorse = horses[chosen];
+  const prizeFactors = { 1: 1, 2: 0.5, 3: 0.25 };
+  const medal = place === 1 ? "🥇" : place === 2 ? "🥈" : place === 3 ? "🥉" : "🏁";
+  if (place >= 1 && place <= 3) {
+    const prize = Math.floor(bet * chosenHorse.odds * prizeFactors[place]);
     money += prize;
-    wins++;
-
-    result.textContent =
-      "🏆 " + winner.name + " võitis! Said $" + prize + "! 🎉";
-
-    status.textContent =
-      "Sinu valitud hobune jõudis esimesena finišisse!";
+    if (place === 1) {
+      wins++;
+      result.textContent = "🏆 " + chosenHorse.name + " tuli 1. kohale! Võitsid $" + prize + "!";
+      status.textContent = "Esikoha auhind: 100% tavalisest võidust.";
+    } else {
+      result.textContent = medal + " " + chosenHorse.name + " tuli " + place + ". kohale! Auhind: $" + prize + ".";
+      status.textContent = place === 2
+        ? "Teise koha auhind on 50% tavalisest võidust."
+        : "Kolmanda koha auhind on 25% tavalisest võidust.";
+    }
   } else {
-    result.textContent =
-      "🏁 Võitis " + winner.name + "!";
-
-    status.textContent =
-      "Seekord ei läinud õnneks. Sinu panus jäi kaotatuks.";
+    result.textContent = "🏁 Võitis " + winner.name + "! Sinu hobune jäi " + place + ". kohale.";
+    status.textContent = "Seekord auhinda ei saanud. Esikolmik: " + results.slice(0, 3).map((h, i) => (i + 1) + ". " + h.name).join(" · ") + ".";
   }
-
+  const podium = results.slice(0, 3).map((h, i) => ["🥇", "🥈", "🥉"][i] + " " + h.name).join("   ");
+  status.textContent += " | Poodium: " + podium;
   updateUI();
-
+  updateLeaderboard();
   raceButton.disabled = money <= 0;
   document.getElementById("resetButton").disabled = false;
-  document.getElementById("horseChoice").disabled = false;
+  document.querySelectorAll(".horse-card, .bet-chip").forEach(el => el.disabled = false);
   document.getElementById("bet").disabled = false;
-
-  if (money <= 0) {
-    status.textContent += " Raha sai otsa — alusta uut mängu.";
-  }
+  updateBetHint();
+  if (money <= 0) status.textContent += " Raha sai otsa — alusta uut mängu.";
 }
-
 function resetGame() {
   if (running) return;
-
-  money = 100;
-  wins = 0;
-  races = 0;
-
-  horses.forEach(h => {
-    h.progress = 0;
-    h.speed = 0;
-  });
-
+  track.classList.remove("race-starting", "race-go");
+  raceButton.textContent = "🏁 Alusta võistlust!";
+  money = 100; wins = 0; races = 0; finishOrder = [];
+  document.getElementById("bet").value = 10;
+  document.getElementById("raceCountdown").classList.remove("show");
+  horses.forEach(h => { h.progress = 0; h.speed = 0; });
   drawHorses();
   updateUI();
-
   result.textContent = "Valmis uueks võistluseks?";
   status.textContent = "Vali hobune ja alusta võistlust!";
-
   raceButton.disabled = false;
   document.getElementById("resetButton").disabled = false;
-  document.getElementById("horseChoice").disabled = false;
+  document.querySelectorAll(".horse-card, .bet-chip").forEach(el => el.disabled = false);
   document.getElementById("bet").disabled = false;
+  updateBetHint();
 }
-
-createHorses();
+document.getElementById("startGameButton").addEventListener("click", startWithName);
+document.getElementById("startNameForm").addEventListener("submit", startWithName);
+setDifficulty("normal");
 updateUI();
-
+updateBetHint();
+try {
+  const savedName = localStorage.getItem("horseRacingPlayerName_v1") || "";
+  document.getElementById("startPlayerName").value = savedName;
+  document.getElementById("playerName").value = savedName;
+} catch (e) {}
+updateLeaderboard();
 window.addEventListener("resize", drawHorses);
 </script>
 </body>

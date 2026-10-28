@@ -2,7 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
 import { getAuth, signInWithPopup, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
 // Firebase Configuration
 const firebaseConfig = {
     apiKey: "AIzaSyDCl5gu6Xavdsi8ImqZxQjdpy9EHZBUeiU",
@@ -22,9 +21,9 @@ const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
 // Restrict Google Sign-In prompt to voco.ee domain
-googleProvider.setCustomParameters({
-    'hd': 'voco.ee'
-});
+// googleProvider.setCustomParameters({
+//     'hd': 'voco.ee'
+// });
 
 let currentUser = null;
 let isMobileDevice = false;
@@ -113,13 +112,14 @@ onAuthStateChanged(auth, async (user) => {
 
 async function handleGoogleLogin() {
     try {
+        // Always try popup mode first (keeps login scoped inside the browser window)
         await signInWithPopup(auth, googleProvider);
     } catch (error) {
-        console.warn("Popup blocked or failed, attempting redirect login:", error);
-        try {
+        console.warn("Popup blocked or failed, fallback to redirect:", error);
+        
+        // Fallback to redirect only if popups are strictly blocked by browser settings
+        if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
             await signInWithRedirect(auth, googleProvider);
-        } catch (redirectError) {
-            console.error("Google login failed:", redirectError);
         }
     }
 }
@@ -449,7 +449,7 @@ class Player {
 
         this.moveWithCollision(dx * moveSpeed, dy * moveSpeed);
 
-        // Auto Look-At Nearest Guard on Mobile
+        // Aiming Logic: Auto-lock only on Mobile, manual mouse aim on Desktop
         if (isMobileDevice) {
             let closestGuard = null;
             let minDistance = 280;
@@ -474,6 +474,7 @@ class Player {
                 worldMouseY = this.y + dy * 150;
             }
         } else {
+            // Strictly manual aiming via mouse position on Desktop
             this.angle = Math.atan2(worldMouseY - this.y, worldMouseX - this.x);
         }
 
@@ -1676,7 +1677,6 @@ async function submitScore() {
         await addDoc(collection(db, "leaderboard"), {
             uid: currentUser.uid,
             name: currentUser.displayName || 'Anonymous',
-            photoURL: currentUser.photoURL || '',
             time: gameTime,
             kills: guardKills,
             timestamp: serverTimestamp()

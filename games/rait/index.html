@@ -1,21 +1,2527 @@
 ﻿<!DOCTYPE html>
-<html lang="et">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Rait — mäng</title>
-  <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; font-family: system-ui, sans-serif; background: #0a0e12; color: #e8f0ff; display: grid; place-items: center; padding: 1.5rem; }
-    a { color: #5eead4; }
-    .box { text-align: center; max-width: 28rem; line-height: 1.6; }
-  </style>
+<meta charset="utf-8">
+<title>GLOAMVEIL</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  html,body{margin:0;height:100%;background:#000;overflow:hidden}
+  body{display:flex;align-items:center;justify-content:center}
+  canvas{width:min(100vw,calc(100vh*960/540));height:min(100vh,calc(100vw*540/960));background:#000;display:block;outline:none}
+</style>
 </head>
 <body>
-  <div class="box">
-    <h1>Rait</h1>
-    <p>Siia tuleb sinu mäng. Asenda see fail või lisa siia oma HTML/CSS/JS.</p>
-    <p><a href="../../index.html">← tagasi dashboardile</a></p>
-  </div>
+<canvas id="c" width="960" height="540" tabindex="0"></canvas>
+<script>
+"use strict";
+/*
+GLOAMVEIL - a small metroidvania (HTML canvas port of the pygame version)
+
+Controls
+  Move  A/D or Left/Right      Aim  W/S or Up/Down (up-slash, down-slash = pogo)
+  Jump  SPACE (hold = higher)  Dash X or LShift (after you earn it)
+  Attack  Left Mouse or J      Soul Lance  Right Mouse or K
+  Mend (heal)  hold Q or L     Talk / rest at lanterns  E
+  Map  M     Pause  ESC or P
+*/
+const W = 960, H = 540, TS = 32, FPS = 60;
+const DT = 1.0 / FPS;
+const SAVE_KEY = "gloamveil_save";
+const TAU = Math.PI * 2;
+
+// ------------------------------------------------------------------ tuning
+const MAX_HP = 10, NAIL_DMG = 10, SPELL_DMG = 45, POOL_MAX = 99, SPELL_COST = 33, HEAL_COST = 33, HEAL_AMT = 3, HEAL_TIME = 0.9;
+const CHARGE_PER_HIT = 8, WEAK = 2, STRONG = 3;
+const RUN = 285, GRAV = 2300, JUMP = 790, DJUMP = 700, MAXFALL = 900;
+const DASH_V = 800, DASH_T = 0.17;
+const WALL_SLIDE = 110, WJ_V = 760, WJ_H = 340;
+const WT = 344, HT = 72;
+
+const cv = document.getElementById('c');
+const scr = cv.getContext('2d');
+
+// ------------------------------------------------------------------ helpers
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const lerpc = (c1, c2, t) => c1.map((a, i) => Math.trunc(lerp(a, c2[i], t)));
+const sign = v => (v > 0) - (v < 0);
+const shade = (c, f) => c.map(x => clamp(Math.trunc(x * f), 0, 255));
+const approach = (v, t, d) => v < t ? Math.min(v + d, t) : Math.max(v - d, t);
+const pymod = (a, n) => ((a % n) + n) % n;
+const rnd = Math.random;
+const uniform = (a, b) => a + (b - a) * Math.random();
+const randint = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const choice = arr => arr[Math.floor(Math.random() * arr.length)];
+const range = n => Array.from({ length: n }, (_, i) => i);
+
+class RNG {
+  constructor(seed) { this.a = (seed >>> 0) || 1; }
+  random() {
+    let t = this.a += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  }
+  randrange(a, b) { if (b === undefined) { b = a; a = 0; } return a + Math.floor(this.random() * (b - a)); }
+  randint(a, b) { return a + Math.floor(this.random() * (b - a + 1)); }
+  uniform(a, b) { return a + (b - a) * this.random(); }
+  choice(arr) { return arr[Math.floor(this.random() * arr.length)]; }
+}
+
+class Rect {
+  constructor(x, y, w, h) { this.x = Math.trunc(x); this.y = Math.trunc(y); this.w = w; this.h = h; }
+  get left() { return this.x; } get right() { return this.x + this.w; }
+  get top() { return this.y; } get bottom() { return this.y + this.h; }
+  get centerx() { return this.x + Math.trunc(this.w / 2); } get centery() { return this.y + Math.trunc(this.h / 2); }
+  colliderect(o) { return this.x < o.x + o.w && o.x < this.x + this.w && this.y < o.y + o.h && o.y < this.y + this.h; }
+  collidepoint(px, py) { return px >= this.x && px < this.x + this.w && py >= this.y && py < this.y + this.h; }
+  inflate(dx, dy) { return new Rect(this.x - dx / 2, this.y - dy / 2, this.w + dx, this.h + dy); }
+}
+
+// ---- drawing primitives (pygame.draw look-alikes)
+const css = (c, a) => a === undefined ? `rgb(${c[0] | 0},${c[1] | 0},${c[2] | 0})` : `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+function dPoly(c, col, pts, w = 0) {
+  c.beginPath();
+  for (let i = 0; i < pts.length; i++) i ? c.lineTo(pts[i][0], pts[i][1]) : c.moveTo(pts[i][0], pts[i][1]);
+  c.closePath();
+  if (w) { c.lineWidth = w; c.strokeStyle = css(col); c.lineJoin = 'round'; c.stroke(); }
+  else { c.fillStyle = css(col); c.fill(); }
+}
+function dCirc(c, col, x, y, r, w = 0) {
+  c.beginPath();
+  if (w) { c.arc(x, y, Math.max(0.5, r - w / 2), 0, TAU); c.lineWidth = w; c.strokeStyle = css(col); c.stroke(); }
+  else { c.arc(x, y, Math.max(0.5, r), 0, TAU); c.fillStyle = css(col); c.fill(); }
+}
+function dEll(c, col, x, y, rx, ry, w = 0) {
+  c.beginPath();
+  if (w) { c.ellipse(x, y, Math.max(0.5, rx - w / 2), Math.max(0.5, ry - w / 2), 0, 0, TAU); c.lineWidth = w; c.strokeStyle = css(col); c.stroke(); }
+  else { c.ellipse(x, y, Math.max(0.5, rx), Math.max(0.5, ry), 0, 0, TAU); c.fillStyle = css(col); c.fill(); }
+}
+function dLine(c, col, a, b, w = 1) {
+  c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.lineWidth = w; c.strokeStyle = css(col); c.lineCap = 'butt'; c.stroke();
+}
+function dLines(c, col, pts, w = 1) {
+  c.beginPath();
+  for (let i = 0; i < pts.length; i++) i ? c.lineTo(pts[i][0], pts[i][1]) : c.moveTo(pts[i][0], pts[i][1]);
+  c.lineWidth = w; c.strokeStyle = css(col); c.lineJoin = 'round'; c.lineCap = 'butt'; c.stroke();
+}
+function dRect(c, col, x, y, w, h) { c.fillStyle = css(col); c.fillRect(x, y, w, h); }
+function dRectB(c, col, x, y, w, h, lw) { c.lineWidth = lw; c.strokeStyle = css(col); c.strokeRect(x + lw / 2, y + lw / 2, w - lw, h - lw); }
+function dRRect(c, col, x, y, w, h, r, lw = 0) {
+  c.beginPath();
+  if (lw) { c.roundRect(x + lw / 2, y + lw / 2, w - lw, h - lw, r); c.lineWidth = lw; c.strokeStyle = css(col); c.stroke(); }
+  else { c.roundRect(x, y, w, h, r); c.fillStyle = css(col); c.fill(); }
+}
+
+class Pen {
+  constructor(ctx, ox, oy, f = 1) { this.s = ctx; this.ox = ox; this.oy = oy; this.f = f; }
+  P(p) { return [this.ox + this.f * p[0], this.oy + p[1]]; }
+  poly(c, pts, w = 0) { dPoly(this.s, c, pts.map(p => this.P(p)), w); }
+  ell(c, x, y, rx, ry, w = 0) { const [X, Y] = this.P([x, y]); dEll(this.s, c, X, Y, rx, ry, w); }
+  circ(c, x, y, r, w = 0) { const [X, Y] = this.P([x, y]); dCirc(this.s, c, X, Y, Math.max(1, Math.trunc(r)), w); }
+  line(c, a, b, w = 1) { dLine(this.s, c, this.P(a), this.P(b), w); }
+  lines(c, pts, w = 1) { dLines(this.s, c, pts.map(p => this.P(p)), w); }
+}
+
+class Inp { constructor() { this.l = this.r = this.u = this.d = this.jump = this.jh = this.dash = this.atk = this.spell = this.heal = this.use = false; } }
+
+class Particles {
+  constructor() { this.p = []; }
+  add(x, y, vx, vy, life, col, size = 3, grav = 0.0) { if (this.p.length < 700) this.p.push([x, y, vx, vy, life, life, col, size, grav]); }
+  burst(x, y, n, col, speed = 220, life = 0.5, size = 3, grav = 400, up = 0.0) {
+    for (let i = 0; i < n; i++) {
+      const a = uniform(0, TAU), sp = uniform(0.3, 1.0) * speed;
+      this.add(x, y, Math.cos(a) * sp, Math.sin(a) * sp - up, life * uniform(0.6, 1.2), col, size, grav);
+    }
+  }
+  update() {
+    for (const q of this.p) { q[4] -= DT; q[3] += q[8] * DT; q[0] += q[2] * DT; q[1] += q[3] * DT; }
+    this.p = this.p.filter(q => q[4] > 0);
+  }
+  draw(c, cam) {
+    for (const [x, y, vx, vy, life, ml, col, size] of this.p) {
+      const r = Math.max(1, Math.trunc(size * life / ml));
+      c.fillStyle = css(col);
+      c.fillRect(Math.trunc(x - cam[0] - r), Math.trunc(y - cam[1] - r), r * 2, r * 2);
+    }
+  }
+}
+
+function mkCanvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+
+// ------------------------------------------------------------------ zones & tile art
+const ZONES = [
+  { name: "Mossgrave Village", sub: "where the lanterns still burn", sky: [[38, 44, 92], [236, 152, 118]],
+    rock: [62, 54, 70], top: [98, 134, 70], glow: [255, 205, 130], mote: [255, 225, 150], far: [44, 40, 78], near: [30, 34, 56] },
+  { name: "Gloamwood", sub: "the briar remembers", sky: [[10, 20, 26], [44, 78, 66]],
+    rock: [34, 46, 44], top: [72, 118, 62], glow: [170, 255, 170], mote: [190, 255, 150], far: [18, 38, 38], near: [10, 26, 28] },
+  { name: "Crystal Hollows", sub: "a mountain's cold heartbeat", sky: [[12, 8, 28], [44, 28, 84]],
+    rock: [44, 38, 68], top: [120, 98, 180], glow: [160, 205, 255], mote: [180, 225, 255], far: [30, 20, 64], near: [20, 14, 48] },
+  { name: "Drowned Sanctum", sub: "the tide never left", sky: [[4, 22, 34], [14, 76, 92]],
+    rock: [28, 56, 66], top: [64, 136, 132], glow: [120, 255, 230], mote: [160, 255, 240], far: [10, 50, 66], near: [6, 36, 50] },
+  { name: "The Hollow Throne", sub: "the crown without a king", sky: [[14, 6, 18], [78, 22, 54]],
+    rock: [52, 36, 54], top: [130, 64, 106], glow: [240, 130, 210], mote: [250, 170, 225], far: [40, 14, 40], near: [26, 10, 30] },
+];
+
+function makeTiles() {
+  const T = { t: [], spk: [], gate: null };
+  ZONES.forEach((z, zi) => {
+    T.t[zi] = [];
+    for (let kind = 0; kind < 3; kind++) {
+      T.t[zi][kind] = [];
+      for (let v = 0; v < 3; v++) {
+        const rng = new RNG(zi * 97 + kind * 13 + v);
+        const cvs = mkCanvas(TS, TS), s = cvs.getContext('2d');
+        const base = shade(z.rock, [1.0, 0.82, 0.62][kind]);
+        dRect(s, base, 0, 0, TS, TS);
+        for (let i = 0; i < 11; i++) {
+          const col = shade(base, rng.choice([0.78, 1.2, 0.9, 1.12]));
+          dRect(s, col, rng.randrange(TS - 6), rng.randrange(TS - 4), rng.randint(2, 7), rng.randint(2, 4));
+        }
+        if (kind === 1) dRectB(s, shade(base, 0.7), 0, 0, TS, TS, 1);
+        if (zi === 4 && kind > 0) {
+          const x = rng.randrange(6, 24);
+          dLines(s, shade(base, 0.5), [[x, 0], [x + 5, 10], [x - 3, 18], [x + 4, 31]], 1);
+        }
+        if (zi === 3 && kind > 0) {
+          for (let i = 0; i < 3; i++) dRect(s, shade(z.top, 0.8), rng.randrange(TS - 2), rng.randrange(TS - 2), 2, 2);
+        }
+        if (kind === 0) {
+          const top = z.top;
+          dRect(s, top, 0, 0, TS, 7);
+          for (let x = 0; x < TS; x += 4) dRect(s, shade(top, rng.choice([0.75, 1.0, 1.25])), x, 4, 4, rng.randint(3, 8));
+          if (zi === 0 || zi === 1) for (let x = 1; x < TS; x += 6) dRect(s, shade(top, 1.4), x, 0, 1, rng.randint(2, 4));
+          if (zi === 2) { const x = rng.randrange(2, 22); dPoly(s, [205, 235, 255], [[x, 7], [x + 3, 0], [x + 6, 7]]); }
+          if (zi === 3) dRect(s, shade(top, 1.3), 0, 0, TS, 2);
+          if (zi === 4) dRect(s, shade(top, 1.3), 0, 0, TS, 2);
+        }
+        T.t[zi][kind][v] = cvs;
+      }
+    }
+    const spc = mkCanvas(TS, TS), sp = spc.getContext('2d');
+    const cols = [[[205, 190, 150], [110, 88, 60]], [[225, 205, 255], [110, 80, 170]],
+      [[255, 150, 160], [150, 70, 90]], [[190, 190, 215], [180, 50, 130]], [[190, 190, 215], [180, 50, 130]]][zi];
+    for (let k = 0; k < 4; k++) {
+      const x0 = k * 8;
+      dPoly(sp, cols[1], [[x0, TS], [x0 + 4, 10 + (k % 2) * 3], [x0 + 8, TS]]);
+      dPoly(sp, cols[0], [[x0 + 1, TS], [x0 + 4, 11 + (k % 2) * 3], [x0 + 5, TS]]);
+    }
+    T.spk[zi] = spc;
+  });
+  const gc = mkCanvas(TS, TS), g = gc.getContext('2d');
+  dRect(g, [24, 20, 34], 0, 0, TS, TS);
+  for (const x of [4, 14, 24]) { dRect(g, [80, 72, 100], x, 0, 5, TS); dRect(g, [140, 130, 170], x, 0, 2, TS); }
+  dCirc(g, [255, 90, 120], 16, 16, 5); dCirc(g, [255, 210, 220], 16, 16, 2);
+  T.gate = gc;
+  return T;
+}
+
+// ------------------------------------------------------------------ world
+class Arena {
+  constructor(idx, x0, fy, enter, gates) {
+    this.idx = idx; this.x0 = x0; this.fy = fy; this.enter = enter; this.gates = gates;
+    this.rect = new Rect((x0 + 1) * TS, (fy - 15) * TS, 28 * TS, 15 * TS);
+    this.view = new Rect(x0 * TS, (fy - 18) * TS, 30 * TS, 19 * TS);
+    this.floor = fy * TS;
+  }
+  triggered(p) {
+    if (!this.rect.collidepoint(p.cx(), p.cy())) return false;
+    return this.enter === 'L' ? p.cx() > this.rect.left + 3 * TS : p.cx() < this.rect.right - 3 * TS;
+  }
+}
+
+class World {
+  constructor() {
+    this.g = range(HT).map(() => new Array(WT).fill(1));
+    this.shrines = []; this.npcs = []; this.spawns = []; this.arenas = []; this.decor = [];
+    build(this);
+    this.finish();
+  }
+  solid(tx, ty) {
+    if (tx < 0 || ty < 0 || tx >= WT || ty >= HT) return true;
+    const v = this.g[ty][tx]; return v === 1 || v === 3;
+  }
+  solid_at(px, py) { return this.solid(Math.floor(px / TS), Math.floor(py / TS)); }
+  spike(tx, ty) { return tx >= 0 && tx < WT && ty >= 0 && ty < HT && this.g[ty][tx] === 2; }
+  spike_hit(x, y, w, h) {
+    for (let ty = Math.floor(y / TS); ty <= Math.floor((y + h - 1e-3) / TS); ty++)
+      for (let tx = Math.floor(x / TS); tx <= Math.floor((x + w - 1e-3) / TS); tx++) {
+        if (tx >= 0 && tx < WT && ty >= 0 && ty < HT && this.g[ty][tx] === 2) {
+          if (y + h > ty * TS + 12 && y < (ty + 1) * TS && x + w > tx * TS + 4 && x < (tx + 1) * TS - 4) return true;
+        }
+      }
+    return false;
+  }
+  static zone_at(tx, ty) {
+    if (ty < 26 && tx >= 288) return 4;
+    if (tx < 46) return 0;
+    if (tx < 140) return 1;
+    if (tx < 246) return 2;
+    return 3;
+  }
+  move(e, dx, dy) {
+    e.hx = e.hy = 0;
+    if (dx) {
+      e.x += dx;
+      const x0 = Math.floor(e.x / TS), x1 = Math.floor((e.x + e.w - 1e-3) / TS);
+      const y0 = Math.floor(e.y / TS), y1 = Math.floor((e.y + e.h - 1e-3) / TS);
+      let hit = null;
+      for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++)
+        if (this.solid(tx, ty) && (hit === null || (dx > 0 && tx < hit) || (dx < 0 && tx > hit))) hit = tx;
+      if (hit !== null) {
+        if (dx > 0) { e.x = hit * TS - e.w; e.hx = 1; } else { e.x = (hit + 1) * TS; e.hx = -1; }
+      }
+    }
+    if (dy) {
+      e.y += dy;
+      const x0 = Math.floor(e.x / TS), x1 = Math.floor((e.x + e.w - 1e-3) / TS);
+      const y0 = Math.floor(e.y / TS), y1 = Math.floor((e.y + e.h - 1e-3) / TS);
+      let hit = null;
+      for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++)
+        if (this.solid(tx, ty) && (hit === null || (dy > 0 && ty < hit) || (dy < 0 && ty > hit))) hit = ty;
+      if (hit !== null) {
+        if (dy > 0) { e.y = hit * TS - e.h; e.hy = 1; } else { e.y = (hit + 1) * TS; e.hy = -1; }
+      }
+    }
+  }
+  carve(x0, y0, x1, y1) { for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) this.g[y][x] = 0; }
+  fill(x0, y0, x1, y1, t = 1) { for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) this.g[y][x] = t; }
+  plat(x, y, w, h = 1) { this.fill(x, y, x + w, y + h); }
+  spikes(x0, x1, y) { for (let x = x0; x < x1; x++) if (this.g[y][x] === 0) this.g[y][x] = 2; }
+  pit(x0, x1, top, depth = 8) { this.carve(x0, top, x1, top + depth); this.spikes(x0, x1, top + depth - 1); }
+  arena(x0, fy, idx, enter, left = true, right = true) {
+    this.fill(x0, fy - 18, x0 + 30, fy);
+    this.carve(x0 + 1, fy - 15, x0 + 29, fy);
+    const gates = [];
+    if (left) { this.carve(x0, fy - 4, x0 + 1, fy); for (let y = fy - 4; y < fy; y++) gates.push([x0, y]); }
+    if (right) { this.carve(x0 + 29, fy - 4, x0 + 30, fy); for (let y = fy - 4; y < fy; y++) gates.push([x0 + 29, y]); }
+    this.plat(x0 + 4, fy - 3, 4); this.plat(x0 + 22, fy - 3, 4);
+    if (idx >= 2) this.plat(x0 + 13, fy - 6, 4);
+    this.arenas.push(new Arena(idx, x0, fy, enter, gates));
+  }
+  finish() {
+    this.zone = range(HT).map(y => range(WT).map(x => World.zone_at(x, y)));
+    this.kind = range(HT).map(() => new Array(WT).fill(0));
+    for (let y = 0; y < HT; y++) for (let x = 0; x < WT; x++) {
+      if (this.g[y][x] === 1) {
+        let k;
+        if (!this.solid(x, y - 1)) k = 0;
+        else if (this.solid(x - 1, y) && this.solid(x + 1, y) && this.solid(x, y + 1)) k = 2;
+        else k = 1;
+        this.kind[y][x] = k;
+      }
+    }
+    const rng = new RNG(11);
+    const tables = {
+      0: [['bush', .06]], 1: [['tree', .09], ['bush', .10], ['mush', .07]],
+      2: [['cryst', .15]], 3: [['coral', .12], ['reed', .12]], 4: [['pillar', .035], ['tuft', .10]]
+    };
+    for (let x = 2; x < WT - 2; x++) for (let y = 2; y < HT - 2; y++) {
+      if (this.g[y][x] !== 1) continue;
+      const z = this.zone[y][x], r = rng.random();
+      const px = x * TS + TS / 2;
+      if (this.g[y - 1][x] === 0) {
+        let acc = 0;
+        for (const [kind, p] of tables[z]) {
+          acc += p;
+          if (r < acc) { this.decor.push([px, kind, y * TS, rng.randrange(1000)]); break; }
+        }
+      } else if (this.g[y + 1][x] === 0 && r < 0.14) {
+        const kind = z <= 1 ? 'vine' : 'stal';
+        this.decor.push([px, kind, (y + 1) * TS, rng.randrange(1000)]);
+      }
+    }
+    for (const tx of [12, 24, 31, 38]) this.decor.push([tx * TS, 'house', 40 * TS, tx]);
+    this.decor.sort((a, b) => a[0] - b[0]);
+    this.decor_x = this.decor.map(d => d[0]);
+  }
+}
+
+function build(w) {
+  const c = (...a) => w.carve(...a), f = (...a) => w.fill(...a), P = (...a) => w.plat(...a);
+  // Mossgrave Village + Gloamwood
+  c(2, 22, 110, 40);
+  f(34, 38, 36, 40);
+  f(42, 37, 44, 40);
+  P(22, 37, 4); P(27, 35, 3);
+  w.spikes(50, 52, 39);
+  w.pit(56, 60, 40);
+  w.pit(68, 96, 40);
+  for (const [x, y] of [[70, 38], [75, 36], [80, 34], [85, 36], [90, 38]]) P(x, y, 3);
+  f(97, 37, 99, 40);
+  w.arena(110, 40, 0, 'L');
+  // Crystal Hollows
+  c(140, 33, 172, 40);
+  f(144, 38, 146, 40);
+  w.pit(150, 158, 40);
+  c(172, 33, 180, 56);
+  c(172, 44, 216, 56);
+  for (const [x, y] of [[177, 53], [172, 50], [177, 47], [172, 44], [172, 41]]) P(x, y, 3);
+  w.pit(186, 194, 56);
+  w.pit(200, 208, 56);
+  P(201, 53, 2); P(204, 51, 2);
+  w.arena(216, 56, 1, 'L');
+  // Drowned Sanctum
+  c(246, 36, 292, 56);
+  f(262, 50, 268, 56);
+  w.spikes(268, 273, 55);
+  f(273, 44, 292, 56);
+  w.arena(292, 44, 2, 'L');
+  c(322, 40, 330, 44);
+  c(330, 20, 334, 44);
+  w.spikes(331, 334, 43);
+  c(322, 20, 330, 24);
+  w.arena(292, 24, 3, 'R', false, true);
+
+  w.shrines.push([8, 40], [66, 40], [105, 40], [164, 40], [211, 56], [254, 56], [285, 44], [326, 24]);
+  w.npcs.push([15, 40, 'Elder Maren', 0, 0], [64, 40, 'Old Wick', 1, 1],
+    [161, 40, 'Pilgrim Sael', 2, 2], [323, 24, 'Echo of the Last Knight', 3, 3]);
+  w.spawns.push(['crawler', 47, 40, 0, [46, 49]], ['shooter', 55, 40, 0, null],
+    ['flyer', 62, 34, 0, null], ['flyer', 82, 29, 0, null], ['crawler', 100, 40, 0, [99, 102]],
+    ['crawler', 148, 40, 1, [147, 149]], ['flyer', 154, 35, 1, null], ['shooter', 169, 40, 1, null],
+    ['crawler', 181, 56, 1, [180, 185]], ['flyer', 190, 49, 1, null], ['shooter', 198, 56, 1, null],
+    ['flyer', 204, 47, 1, null],
+    ['crawler', 258, 56, 2, [256, 261]], ['flyer', 270, 47, 2, null], ['shooter', 277, 44, 2, null],
+    ['flyer', 332, 32, 2, null]);
+}
+
+// ------------------------------------------------------------------ shared sprite scratch surfaces
+const _SPR = {};
+function scratch(w, h) {
+  const k = w + 'x' + h;
+  if (!_SPR[k]) { const c = mkCanvas(w, h); _SPR[k] = c.getContext('2d'); }
+  const ctx = _SPR[k];
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  ctx.clearRect(0, 0, w, h);
+  return ctx;
+}
+function flashSprite(ctx, amt) {
+  ctx.globalCompositeOperation = 'source-atop';
+  ctx.fillStyle = `rgba(255,255,255,${amt})`;
+  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.globalCompositeOperation = 'source-over';
+}
+function rot(pts, a, x, y) {
+  const ca = Math.cos(a), sa = Math.sin(a);
+  return pts.map(([px, py]) => [x + px * ca - py * sa, y + px * sa + py * ca]);
+}
+
+// ------------------------------------------------------------------ projectiles
+class Proj {
+  constructor(x, y, vx, vy, w, h, dmg, kind, o = {}) {
+    this.x = x; this.y = y; this.vx = vx; this.vy = vy; this.w = w; this.h = h; this.dmg = dmg; this.kind = kind;
+    this.life = o.life ?? 4.0; this.grav = o.grav ?? 0; this.wall = o.wall ?? true; this.hp = o.hp ?? 0;
+    this.delay = o.delay ?? 0; this.launch = o.launch ?? null; this.home = o.home ?? 0;
+    this.friendly = o.friendly ?? false; this.pierce = o.pierce ?? false;
+    this.t = 0; this.dead = false; this.hits = new Set();
+    this.ang = this.launch ? Math.atan2(this.launch[1], this.launch[0]) : Math.atan2(vy, vx);
+  }
+  rect() { return new Rect(this.x - this.w / 2, this.y - this.h / 2, this.w, this.h); }
+  pop(g) { this.dead = true; g.parts.burst(this.x, this.y, 8, [170, 235, 255], 140, 0.4, 3, 0); }
+  update(g) {
+    this.t += DT;
+    if (this.delay > 0) {
+      this.delay -= DT;
+      if (this.delay <= 0 && this.launch) { this.vx = this.launch[0]; this.vy = this.launch[1]; }
+      return;
+    }
+    this.life -= DT;
+    if (this.life <= 0) { this.dead = true; return; }
+    if (this.home > 0) {
+      this.home -= DT;
+      const sp = Math.hypot(this.vx, this.vy);
+      const a = Math.atan2(g.player.cy() - this.y, g.player.cx() - this.x);
+      let cur = Math.atan2(this.vy, this.vx);
+      const d = pymod(a - cur + Math.PI, TAU) - Math.PI;
+      cur += clamp(d, -0.035, 0.035);
+      this.vx = Math.cos(cur) * sp; this.vy = Math.sin(cur) * sp;
+    }
+    this.vy += this.grav * DT;
+    this.x += this.vx * DT; this.y += this.vy * DT;
+    if (this.vx || this.vy) this.ang = Math.atan2(this.vy, this.vx);
+    if (this.wall && g.world.solid_at(this.x, this.y)) {
+      this.dead = true;
+      g.parts.burst(this.x, this.y, 5, [230, 220, 200], 120, 0.3, 2);
+    }
+    if (this.friendly && this.t > 0.03 && Math.trunc(this.t * 60) % 2 === 0)
+      g.parts.add(this.x - sign(this.vx) * 20, this.y + uniform(-10, 10), 0, 0, 0.3, [140, 235, 255], 3);
+  }
+  draw(c, cam) {
+    const x = this.x - cam[0], y = this.y - cam[1], t = this.t, k = this.kind;
+    if (k === 'thorn') {
+      dPoly(c, [222, 202, 148], rot([[17, 0], [-6, -5], [-15, 0], [-6, 5]], this.ang, x, y));
+      dPoly(c, [90, 130, 60], rot([[9, 0], [-6, -2], [-12, 0], [-6, 2]], this.ang, x, y));
+    } else if (k === 'bubble') {
+      const r = Math.floor(this.w / 2);
+      dCirc(c, [28, 96, 128], x, y, r);
+      dCirc(c, [150, 232, 255], x, y, r, 2);
+      dCirc(c, [255, 255, 255], x - r * .35, y - r * .35, Math.max(2, Math.floor(r / 4)));
+    } else if (k === 'pearl') {
+      for (let i = 1; i < 4; i++) dCirc(c, [200, 110, 170], x - this.vx * 0.012 * i, y - this.vy * 0.012 * i, Math.max(2, 11 - i * 3));
+      dCirc(c, [255, 170, 215], x, y, 13);
+      dCirc(c, [255, 246, 250], x, y, 8);
+    } else if (k === 'shard') {
+      if (this.delay > 0) {
+        const r = 7 + Math.trunc(3 * Math.sin(t * 30));
+        dCirc(c, [210, 235, 255], x, y, r);
+        dCirc(c, [110, 160, 255], x, y, r + 5, 2);
+      }
+      dPoly(c, [90, 140, 235], [[x, y - 24], [x + 10, y], [x, y + 24], [x - 10, y]]);
+      dPoly(c, [190, 232, 255], [[x, y - 24], [x + 3, y], [x, y + 24], [x - 10, y]]);
+    } else if (k === 'quake') {
+      for (const dx of [-14, 0, 14]) {
+        dPoly(c, [110, 80, 200], [[x + dx - 9, y + 17], [x + dx, y - 17], [x + dx + 9, y + 17]]);
+        dPoly(c, [205, 235, 255], [[x + dx - 3, y + 17], [x + dx, y - 12], [x + dx + 3, y + 17]]);
+      }
+    } else if (k === 'wave') {
+      const bot = y + this.h / 2;
+      const pts = [[x - this.w / 2, bot]];
+      for (let i = 0; i < 9; i++) {
+        const px = x - this.w / 2 + this.w * i / 8;
+        pts.push([px, bot - this.h + Math.sin(t * 9 + i * 1.3) * 7 + ((i === 0 || i === 8) ? 8 : 0) + Math.abs(i - 4) * 5]);
+      }
+      pts.push([x + this.w / 2, bot]);
+      dPoly(c, [30, 110, 160], pts);
+      dPoly(c, [100, 200, 235], pts, 3);
+      for (let i = 1; i < 8; i += 2) dCirc(c, [225, 248, 255], pts[i][0], pts[i][1], 4);
+    } else if (k === 'spear') {
+      if (this.delay > 0) {
+        const far = [x + Math.cos(this.ang) * 900, y + Math.sin(this.ang) * 900];
+        dLine(c, [110, 50, 150], [x, y], far, 1);
+        dCirc(c, [255, 150, 255], x, y, 6 + Math.trunc(3 * Math.sin(t * 25)));
+      }
+      dPoly(c, [50, 20, 80], rot([[36, 0], [-32, -4], [-32, 4]], this.ang, x, y));
+      dPoly(c, [235, 120, 255], rot([[36, 0], [14, -3], [14, 3]], this.ang, x, y));
+    } else if (k === 'void') {
+      const r = Math.floor(this.w / 2);
+      dCirc(c, [214, 80, 200], x, y, r + 3);
+      dCirc(c, [28, 8, 40], x, y, Math.max(2, r - 2));
+    } else if (k === 'spore') {
+      dCirc(c, [120, 200, 90], x, y, 8);
+      dCirc(c, [214, 255, 170], x - 2, y - 2, 4);
+    } else if (k === 'spell') {
+      const A1 = range(9).map(i => -1.15 + i * 0.2875), A2 = range(9).map(i => 1.15 - i * 0.2875);
+      const R = rot(A1.map(a => [24 * Math.cos(a), 27 * Math.sin(a)]).concat(A2.map(a => [-11 + 14 * Math.cos(a), 23 * Math.sin(a)])), this.ang, x, y);
+      dPoly(c, [130, 230, 255], R);
+      dPoly(c, [255, 255, 255], rot([[18, 0], [-2, -9], [-2, 9]], this.ang, x, y));
+    }
+  }
+}
+
+// ------------------------------------------------------------------ the player
+class Player {
+  constructor(g) { this.g = g; this.w = 20; this.h = 38; this.pool = 0; this.x = this.y = 0; this.place(0, 0); }
+  place(x, y) {
+    const s = this;
+    s.x = x; s.y = y;
+    s.safe = [s.x, s.y];
+    s.vx = s.vy = 0.0; s.face = 1; s.hx = s.hy = 0; s.grounded = false;
+    s.coy = s.jbuf = s.abuf = s.dash_cd = s.atk_cd = s.atk_t = s.cast_t = s.cast_cd = 0.0;
+    s.wlock = s.wcoy = s.inv = s.dash_t = s.heal_t = s.safe_t = s.anim_t = 0.0;
+    s.dash_dir = 1; s.dash_ok = true; s.dj = true; s.rising = false; s.cut = false;
+    s.healing = s.heal_lock = s.dead = s.hazard = false;
+    s.wall = s.wdir = 0;
+    s.adir = 'side'; s.hits = new Set(); s.spawn = [];
+    s.hp = MAX_HP;
+  }
+  rect() { return new Rect(this.x, this.y, this.w, this.h); }
+  cx() { return this.x + this.w / 2; }
+  cy() { return this.y + this.h / 2; }
+  puff(n, col, speed = 220, life = 0.5, size = 3, grav = 400) { if (this.g.parts) this.g.parts.burst(this.cx(), this.y + this.h, n, col, speed, life, size, grav); }
+  attack_rect() {
+    const s = this;
+    if (!(0.05 < s.atk_t && s.atk_t < 0.18)) return null;
+    const cx = s.cx();
+    if (s.adir === 'up') return new Rect(cx - 30, s.y - 54, 60, 58);
+    if (s.adir === 'down') return new Rect(cx - 30, s.y + s.h - 8, 60, 56);
+    return new Rect(s.face > 0 ? cx + 2 : cx - 66, s.y - 6, 64, s.h + 8);
+  }
+  hurt(dmg, sx, kb = true) {
+    const s = this;
+    if (s.inv > 0 || s.dead) return false;
+    s.hp -= dmg;
+    s.inv = 1.25;
+    s.heal_t = 0.0; s.healing = false; s.heal_lock = true;
+    s.atk_t = s.cast_t = s.dash_t = 0.0;
+    if (kb) {
+      s.vx = (s.cx() >= sx ? 1 : -1) * 330;
+      s.vy = -300;
+      s.wlock = 0.18; s.rising = false;
+    }
+    if (s.hp <= 0) { s.hp = 0; s.dead = true; }
+    return true;
+  }
+  update(i) {
+    const s = this, w = s.g.world, ab = s.g.abil;
+    if (s.dead) {
+      s.vx *= 0.9; s.vy = Math.min(s.vy + GRAV * DT, MAXFALL);
+      w.move(s, s.vx * DT, s.vy * DT);
+      return;
+    }
+    for (const k of ['inv', 'coy', 'jbuf', 'abuf', 'dash_cd', 'atk_cd', 'atk_t', 'cast_t', 'cast_cd', 'wlock', 'wcoy']) {
+      if (s[k] > 0) s[k] = Math.max(0.0, s[k] - DT);
+    }
+    s.anim_t += DT;
+    const gr = s.grounded;
+    if (gr) { s.coy = 0.1; s.dj = true; s.dash_ok = true; s.rising = false; }
+    const dx = (i.r ? 1 : 0) - (i.l ? 1 : 0);
+    if (i.jump) s.jbuf = 0.12;
+    if (i.atk) s.abuf = 0.12;
+
+    // Mend
+    if (!i.heal) s.heal_lock = false;
+    const want = (i.heal && !s.heal_lock && s.pool >= HEAL_COST && s.hp < MAX_HP && s.cast_t <= 0 && s.dash_t <= 0 && s.wlock <= 0);
+    if (want) {
+      s.heal_t += DT; s.healing = true;
+      if (s.g.parts && Math.trunc(s.heal_t * 60) % 3 === 0)
+        s.g.parts.add(s.cx() + uniform(-14, 14), s.y + s.h, uniform(-10, 10), -90, 0.5, [150, 255, 200], 3);
+      if (s.heal_t >= HEAL_TIME) {
+        s.hp = Math.min(MAX_HP, s.hp + HEAL_AMT); s.pool -= HEAL_COST;
+        s.heal_t = 0.0; s.healing = false; s.heal_lock = true;
+        if (s.g.parts) s.g.parts.burst(s.cx(), s.cy(), 22, [170, 255, 210], 220, 0.6, 3, -60);
+        s.g.on_heal();
+      }
+    } else { s.heal_t = 0.0; s.healing = false; }
+    const busy = s.cast_t > 0 || s.healing;
+
+    // dash
+    if (i.dash && ab.dash && s.dash_ok && s.dash_cd <= 0 && !busy && s.dash_t <= 0) {
+      s.dash_t = DASH_T; s.dash_cd = 0.45; s.dash_ok = false;
+      s.dash_dir = dx || s.face;
+      s.face = s.dash_dir;
+      s.inv = Math.max(s.inv, DASH_T + 0.04);
+      s.atk_t = 0.0; s.vy = 0.0; s.rising = false;
+      s.puff(8, [150, 220, 255], 120, 0.3, 3, 0);
+    }
+
+    // horizontal
+    if (s.dash_t > 0) {
+      s.dash_t -= DT;
+      s.vx = s.dash_dir * DASH_V; s.vy = 0.0;
+      if (s.g.parts) s.g.parts.add(s.cx(), s.cy() + uniform(-12, 12), -s.dash_dir * 60, 0, 0.25, [140, 215, 255], 4);
+      if (s.dash_t <= 0) s.vx = s.dash_dir * RUN;
+    } else if (s.healing) s.vx = approach(s.vx, 0, 3400 * DT);
+    else if (s.cast_t > 0) s.vx = approach(s.vx, 0, 1500 * DT);
+    else if (s.wlock <= 0) {
+      const a = dx ? (gr ? 3600 : 2400) : (gr ? 3800 : 700);
+      s.vx = approach(s.vx, dx * RUN, a * DT);
+      if (dx && s.atk_t <= 0) s.face = dx;
+    }
+
+    // wall contact
+    s.wall = 0;
+    if (ab.wall && !gr && s.dash_t <= 0) {
+      const y1 = s.y + 6, y2 = s.y + s.h - 6;
+      const L = w.solid_at(s.x - 2, y1) || w.solid_at(s.x - 2, y2);
+      const R = w.solid_at(s.x + s.w + 2, y1) || w.solid_at(s.x + s.w + 2, y2);
+      if (dx < 0 && L) s.wall = -1;
+      else if (dx > 0 && R) s.wall = 1;
+      if (s.wall) { s.wcoy = 0.1; s.wdir = s.wall; s.dj = true; s.dash_ok = true; }
+    }
+
+    // jumping
+    if (s.jbuf > 0 && !busy && s.dash_t <= 0) {
+      if (s.coy > 0) {
+        s.vy = -JUMP; s.rising = true; s.cut = false; s.jbuf = 0; s.coy = 0;
+        s.puff(5, [200, 200, 200], 80, 0.25, 3, 0);
+      } else if (ab.wall && s.wcoy > 0) {
+        s.vy = -WJ_V; s.vx = -s.wdir * WJ_H; s.face = -s.wdir;
+        s.wlock = 0.14; s.jbuf = 0; s.wcoy = 0; s.rising = true; s.cut = false;
+        s.puff(6, [200, 230, 240], 90, 0.25, 3, 0);
+      } else if (ab.dj && s.dj && !gr) {
+        s.vy = -DJUMP; s.dj = false; s.jbuf = 0; s.rising = false;
+        s.puff(10, [210, 245, 255], 140, 0.35, 3, 0);
+      }
+    }
+    if (s.rising) {
+      if (s.vy >= 0) s.rising = false;
+      else if (!i.jh && !s.cut) { s.vy *= 0.45; s.cut = true; }
+    }
+
+    // gravity
+    if (s.dash_t <= 0) {
+      s.vy = Math.min(s.vy + GRAV * DT, MAXFALL);
+      if (s.wall && s.vy > WALL_SLIDE) s.vy = WALL_SLIDE;
+    }
+
+    // attack / spell
+    if (s.abuf > 0 && s.atk_cd <= 0 && !busy && s.dash_t <= 0) {
+      s.abuf = 0; s.atk_t = 0.22; s.atk_cd = 0.32; s.hits = new Set();
+      s.adir = i.u ? 'up' : ((i.d && !gr) ? 'down' : 'side');
+    }
+    if (i.spell && s.pool >= SPELL_COST && s.cast_cd <= 0 && !busy && s.dash_t <= 0) {
+      s.pool -= SPELL_COST;
+      s.cast_t = 0.3; s.cast_cd = 0.5; s.atk_t = 0.0;
+      s.vx = -s.face * 170; s.vy *= 0.2;
+      s.spawn.push(new Proj(s.cx() + s.face * 30, s.cy() - 2, s.face * 640, 0, 54, 30, SPELL_DMG, 'spell',
+        { life: 0.95, wall: true, friendly: true, pierce: true }));
+      if (s.g.parts) s.g.parts.burst(s.cx() + s.face * 20, s.cy(), 14, [150, 235, 255], 200, 0.35, 3, 0);
+    }
+
+    // integrate
+    w.move(s, s.vx * DT, s.vy * DT);
+    if (s.hy === 1) { s.grounded = true; s.vy = 0.0; }
+    else {
+      s.grounded = false;
+      if (s.hy === -1) { s.vy = 0.0; s.rising = false; }
+    }
+    if (s.hx) s.vx = 0.0;
+
+    // hazards & safe spot
+    if (w.spike_hit(s.x, s.y, s.w, s.h)) s.hazard = true;
+    if (s.grounded) {
+      s.safe_t += DT;
+      const tx = Math.floor(s.cx() / TS), ty = Math.floor((s.y + s.h) / TS);
+      if (s.safe_t > 0.12 && w.g[ty][tx] === 1 && w.solid(tx - 1, ty) && w.solid(tx + 1, ty)
+        && !w.spike(tx - 1, ty - 1) && !w.spike(tx + 1, ty - 1) && !w.spike(tx, ty - 1)) s.safe = [s.x, s.y];
+    } else s.safe_t = 0.0;
+  }
+
+  draw(surf, cam) {
+    const s = this;
+    if (s.inv > 0 && !s.dead && s.dash_t <= 0 && Math.trunc(s.inv * 22) % 2 === 0) return;
+    const t = s.anim_t;
+    const sx = Math.trunc(s.cx() - cam[0]), sy = Math.trunc(s.y + s.h - cam[1]);
+    const p = new Pen(surf, sx, sy, s.face);
+    const run = Math.abs(s.vx) > 40 && s.grounded;
+    const vl = s.vx * s.face;
+    const tr = -clamp(vl * 0.05, -14, 14) - 3;
+    let lift = clamp(-s.vy * 0.018, -9, 9) + Math.sin(t * 9) * 1.5;
+    const sw = run ? Math.sin(t * 15) * 7 : 0;
+    const air = !s.grounded;
+    if (s.dead) lift = 6;
+    for (const [off, col] of [[-3, [16, 18, 34]], [4, [30, 36, 62]]]) {
+      const a = off > 0 ? sw : -sw;
+      const foot = !air ? [off + a, 0] : [off + (off > 0 ? 3 : -3), -4 + (off > 0 ? 4 : 0)];
+      p.line(col, [off, -14], foot, 5);
+      p.ell([10, 12, 24], foot[0] + 2, foot[1], 5, 2);
+    }
+    const scarf = [[-2, -31], [tr - 6, -31 + lift], [tr - 16, -27 + lift * 1.2 + Math.sin(t * 7) * 3],
+      [tr - 27, -29 + lift * 1.4 + Math.sin(t * 7 + 1) * 3.5]];
+    p.lines([158, 92, 40], scarf.map(([a, b]) => [a, b + 2]), 6);
+    p.poly([40, 64, 104], [[-3, -33], [7, -32], [10, -14 + lift * 0.3], [tr - 8, -2 + lift], [tr - 14, -9 + lift], [-8, -28]]);
+    p.poly([24, 40, 76], [[-3, -33], [3, -32], [2, -12], [tr - 8, -3 + lift], [tr - 14, -9 + lift], [-8, -28]]);
+    p.poly([30, 34, 62], [[-6, -35], [7, -34], [7, -14], [-6, -14]]);
+    p.poly([206, 156, 62], [[-6, -23], [7, -23], [7, -20], [-6, -20]]);
+    p.line([205, 214, 230], [-5, -31], [-15, -11], 2);
+    p.line([120, 100, 70], [-8, -29], [-3, -26], 3);
+    p.lines([236, 152, 52], scarf, 5);
+    p.circ([238, 234, 222], 2, -41, 9);
+    p.poly([238, 234, 222], [[-4, -47], [-9, -57], [-1, -49]]);
+    p.poly([238, 234, 222], [[5, -49], [10, -59], [11, -46]]);
+    p.ell([20, 22, 40], 5, -41, 2, 3);
+    p.ell([20, 22, 40], -1, -41, 2, 3);
+    p.circ([120, 235, 255], 5, -42, 1);
+    p.circ([120, 235, 255], -1, -42, 1);
+    if (s.healing) {
+      const r = Math.trunc(12 + 22 * (1 - s.heal_t / HEAL_TIME));
+      dCirc(surf, [150, 255, 205], sx, sy - 24, r, 2);
+    }
+    if (s.cast_t > 0) dCirc(surf, [170, 240, 255], sx + s.face * 22, sy - 22, Math.trunc(8 + 24 * (1 - s.cast_t / 0.3)), 2);
+    if (s.atk_t > 0) {
+      const q = 1 - s.atk_t / 0.22;
+      const b = { side: s.face > 0 ? 0 : Math.PI, up: -Math.PI / 2, down: Math.PI / 2 }[s.adir];
+      const R1 = 62 - 6 * q, R2 = 40 + 10 * q;
+      const ccx = s.cx() - cam[0], ccy = s.cy() - cam[1];
+      const angs = range(9).map(i => -1.05 + i * 0.2625);
+      const pts = angs.map(a => [ccx + Math.cos(b + a) * R1, ccy + Math.sin(b + a) * R1])
+        .concat(angs.slice().reverse().map(a => [ccx + Math.cos(b + a) * R2, ccy + Math.sin(b + a) * R2]));
+      dPoly(surf, q < 0.7 ? [235, 248, 255] : [150, 190, 215], pts);
+    }
+  }
+}
+
+// ------------------------------------------------------------------ regular enemies
+const PAL = {
+  0: { body: [74, 104, 54], dark: [34, 52, 30], acc: [214, 194, 124], glow: [196, 255, 120] },
+  1: { body: [112, 92, 172], dark: [52, 38, 96], acc: [192, 236, 255], glow: [160, 222, 255] },
+  2: { body: [70, 150, 160], dark: [30, 70, 90], acc: [255, 160, 172], glow: [150, 255, 236] }
+};
+
+class Enemy {
+  constructor(kind, tx, ty, theme, patrol) {
+    const SZ = { crawler: [36, 24], flyer: [30, 26], shooter: [30, 38] };
+    const HP = { crawler: 30, flyer: 20, shooter: 40 };
+    const s = this;
+    s.kind = kind; s.theme = theme;
+    [s.w, s.h] = SZ[kind];
+    s.x = tx * TS + (TS - s.w) / 2;
+    s.y = kind !== 'flyer' ? ty * TS - s.h : ty * TS - s.h / 2;
+    s.home = [s.x, s.y];
+    if (patrol) { s.pmin = patrol[0] * TS; s.pmax = patrol[1] * TS + TS; } else { s.pmin = 0; s.pmax = 0; }
+    s.hp = HP[kind]; s.alive = true;
+    s.vx = s.vy = s.kx = 0.0; s.hx = s.hy = 0;
+    s.dir = choice([-1, 1]);
+    s.flash = 0;
+    s.t = uniform(0, 6);
+    s.cd = uniform(0.6, 1.6);
+  }
+  rect() { return new Rect(this.x, this.y, this.w, this.h); }
+  cx() { return this.x + this.w / 2; }
+  cy() { return this.y + this.h / 2; }
+  hit(dmg, dirx, g) {
+    const s = this;
+    s.hp -= dmg;
+    s.flash = 6; s.kx = dirx * 260;
+    const pal = PAL[s.theme];
+    g.parts.burst(s.cx(), s.cy(), 8, pal.glow, 180, 0.4, 3);
+    if (s.hp <= 0) {
+      s.alive = false;
+      g.parts.burst(s.cx(), s.cy(), 22, pal.body, 260, 0.7, 4);
+      g.parts.burst(s.cx(), s.cy(), 10, pal.glow, 200, 0.6, 3);
+    }
+  }
+  update(g) {
+    const s = this, w = g.world, p = g.player;
+    s.t += DT;
+    if (s.flash > 0) s.flash -= 1;
+    s.kx *= 0.85;
+    const dist = Math.hypot(p.cx() - s.cx(), p.cy() - s.cy());
+    const calm = !!(g.near && g.near[0] === 'shrine');
+    if (s.kind === 'crawler') {
+      s.vy = Math.min(s.vy + GRAV * DT, 900);
+      if (s.hx) s.dir = -s.dir;
+      else if (s.hy === 1 && !w.solid_at(s.x + (s.dir > 0 ? s.w + 3 : -3), s.y + s.h + 4)) s.dir = -s.dir;
+      if (s.pmax) {
+        if (s.dir > 0 && s.x + s.w > s.pmax) s.dir = -1;
+        else if (s.dir < 0 && s.x < s.pmin) s.dir = 1;
+      }
+      w.move(s, (s.dir * 62 + s.kx) * DT, s.vy * DT);
+      if (s.hy) s.vy = 0.0;
+    } else if (s.kind === 'flyer') {
+      let tv;
+      if (dist < 300 && !p.dead && !calm) {
+        const a = Math.atan2(p.cy() - s.cy(), p.cx() - s.cx());
+        tv = [Math.cos(a) * 105, Math.sin(a) * 105];
+      } else {
+        const hx = s.home[0] + Math.sin(s.t * 1.3) * 36, hy = s.home[1] + Math.sin(s.t * 2.1) * 14;
+        const a = Math.atan2(hy - s.y, hx - s.x), d = Math.hypot(hx - s.x, hy - s.y);
+        const sp = Math.min(80, d * 3);
+        tv = [Math.cos(a) * sp, Math.sin(a) * sp];
+      }
+      s.vx = lerp(s.vx, tv[0], 0.08); s.vy = lerp(s.vy, tv[1], 0.08);
+      w.move(s, (s.vx + s.kx) * DT, s.vy * DT);
+      if (s.hx) s.vx = 0.0;
+      if (s.hy) s.vy = 0.0;
+      if (Math.abs(s.vx) > 8) s.dir = sign(s.vx);
+    } else {
+      s.dir = p.cx() > s.cx() ? 1 : -1;
+      if (dist < 460 && Math.abs(p.cy() - s.cy()) < 260 && !p.dead && !calm) {
+        s.cd -= DT;
+        if (s.cd <= 0) {
+          const a = Math.atan2(p.cy() - (s.y + 10), p.cx() - s.cx());
+          g.projs.push(new Proj(s.cx(), s.y + 10, Math.cos(a) * 230, Math.sin(a) * 230, 14, 14, 1, 'spore', { life: 3.5 }));
+          s.cd = 2.0;
+        }
+      } else s.cd = Math.max(s.cd, 1.0);
+    }
+  }
+  draw(surf, cam) {
+    const s = this, pal = PAL[s.theme], t = s.t;
+    const spr = scratch(120, 120);
+    const ox = 60, oy = s.kind === 'flyer' ? 60 : 90;
+    const p = new Pen(spr, ox, oy, s.dir);
+    const th = s.theme;
+    if (s.kind === 'crawler') {
+      for (let k = 0; k < 3; k++) {
+        const x = -10 + k * 10, sw = Math.sin(t * 10 + k * 2) * 3;
+        p.line(pal.dark, [x, -7], [x + sw - 3, 0], 3);
+        p.line(pal.dark, [x + 3, -7], [x + sw + 6, 0], 3);
+      }
+      p.ell(pal.body, 0, -11, 18, 11);
+      p.ell(pal.dark, 0, -5, 18, 5);
+      p.line(pal.dark, [-4, -21], [-6, -8], 2);
+      p.line(pal.dark, [5, -21], [6, -8], 2);
+      if (th === 0) { for (const x of [-9, 0, 9]) p.circ([130, 180, 80], x, -21, 4); }
+      else if (th === 1) { for (const x of [-10, -1, 8]) p.poly(pal.acc, [[x - 4, -19], [x, -31 + (x % 5)], [x + 4, -19]]); }
+      else { for (const [x, y] of [[-9, -18], [0, -22], [9, -17]]) p.circ(pal.acc, x, y, 4); }
+      p.ell(pal.body, 16, -9, 8, 7);
+      p.circ(pal.glow, 19, -11, 2);
+    } else if (s.kind === 'flyer') {
+      const flap = Math.sin(t * 16) * 12;
+      if (th === 0) {
+        p.poly(pal.body, [[0, 0], [-8, -18 - flap], [-26, -8 - flap * .5], [-16, 6]]);
+        p.poly(pal.body, [[0, 0], [8, -18 - flap], [26, -8 - flap * .5], [16, 6]]);
+        p.circ(pal.acc, -16, -6 - flap * .4, 3); p.circ(pal.acc, 16, -6 - flap * .4, 3);
+        p.ell(pal.dark, 0, 0, 5, 10);
+        p.lines(pal.dark, [[-2, -8], [-6, -17], [-10, -18]], 1); p.lines(pal.dark, [[2, -8], [6, -17], [10, -18]], 1);
+      } else if (th === 1) {
+        p.poly(pal.body, [[0, 0], [-10, -14 - flap], [-30, 4 - flap], [-14, 8]]);
+        p.poly(pal.body, [[0, 0], [10, -14 - flap], [30, 4 - flap], [14, 8]]);
+        p.poly(pal.acc, [[0, 0], [-9, -10 - flap], [-18, 0 - flap]]);
+        p.poly(pal.dark, [[-7, -6], [7, -6], [5, 10], [-5, 10]]);
+      } else {
+        p.ell(pal.body, 0, -4, 13, 11);
+        for (let k = 0; k < 4; k++) {
+          const x = -9 + k * 6;
+          p.lines(pal.acc, [[x, 4], [x + Math.sin(t * 5 + k) * 4, 12], [x - Math.sin(t * 5 + k) * 3, 20]], 2);
+        }
+        p.ell(pal.dark, 0, -2, 9, 6);
+      }
+      p.circ(pal.glow, 5, -3, 2); p.circ(pal.glow, -1, -3, 2);
+    } else {
+      const tel = s.cd < 0.45;
+      p.poly(pal.dark, [[-5, 0], [5, 0], [3, -22], [-3, -22]]);
+      p.poly(pal.dark, [[-14, 0], [-5, -6], [-5, 0]]); p.poly(pal.dark, [[14, 0], [5, -6], [5, 0]]);
+      const hy = -30 - (tel ? 3 : 0);
+      p.ell(pal.body, 0, hy, 13, 12);
+      if (th === 0) {
+        for (const a of [-0.9, 0, 0.9]) p.poly(pal.acc, [[Math.sin(a) * 9 - 3, hy - Math.cos(a) * 9], [Math.sin(a) * 18, hy - Math.cos(a) * 18], [Math.sin(a) * 9 + 3, hy - Math.cos(a) * 9]]);
+      } else if (th === 1) {
+        for (const x of [-8, 0, 8]) p.poly(pal.acc, [[x - 4, hy - 8], [x, hy - 22 + Math.floor(Math.abs(x) / 2)], [x + 4, hy - 8]]);
+      } else {
+        for (let k = 0; k < 5; k++) p.lines(pal.acc, [[-8 + k * 4, hy - 8], [-10 + k * 5 + Math.sin(t * 4 + k) * 2, hy - 18]], 2);
+      }
+      const mw = tel ? 7 : 3;
+      p.ell([20, 10, 24], 7, hy + 1, 5, mw);
+      p.circ(!tel ? pal.glow : [255, 255, 200], 3, hy - 5, 2);
+    }
+    if (s.flash) flashSprite(spr, 0.5);
+    surf.drawImage(spr.canvas, Math.trunc(s.cx() - cam[0]) - ox, Math.trunc((s.kind !== 'flyer' ? s.y + s.h : s.cy()) - cam[1]) - oy);
+  }
+}
+
+// ------------------------------------------------------------------ bosses
+function crescent(c, cx, cy, base, R1, R2, col, span = 1.0) {
+  const angs = range(9).map(i => -span + i * (2 * span / 8));
+  const pts = angs.map(a => [cx + Math.cos(base + a) * R1, cy + Math.sin(base + a) * R1])
+    .concat(angs.slice().reverse().map(a => [cx + Math.cos(base + a) * R2, cy + Math.sin(base + a) * R2]));
+  dPoly(c, col, pts);
+}
+
+class Boss {
+  // Attacks are generators: every `yield` is one frame. Damage boxes are added to this.hb each frame.
+  // this.fx holds per-frame visual flags set by the script (cleared every frame).
+  name = "BOSS"; title = ""; max_hp = 200;
+  w = 80; h = 100; rest = 40; lift = 0;
+  SW = 400; SH = 320; OX = 200; OY = 300;
+  has_grav = true;
+
+  constructor(g, arena) {
+    this.g = g; this.arena = arena;
+    this.L = arena.rect.left; this.R = arena.rect.right; this.top = arena.rect.top; this.floor = arena.floor;
+  }
+  reset() {
+    const s = this, a = s.arena;
+    s.state = 'dormant'; s.hp = s.max_hp;
+    s.f = a.enter === 'L' ? -1 : 1;
+    const sx = a.enter === 'L' ? a.rect.right - 9.5 * TS : a.rect.left + 9.5 * TS;
+    s.x = sx - s.w / 2; s.y = s.floor - s.h - s.lift;
+    s.vx = s.vy = 0.0; s.hx = s.hy = 0;
+    s.script = null; s.pause = 0; s.hb = []; s.fx = {};
+    s.flash = 0; s.tell_t = 0.0; s.tell_strong = false;
+    s.enraged = false; s.tempo = 1.0; s.t = 0; s.contact = WEAK; s.last = '';
+    s.gravity = s.has_grav; s.roaring = false; s.dead_t = 0;
+  }
+  rect() { return new Rect(this.x, this.y, this.w, this.h); }
+  hurtbox() { return new Rect(this.x + 6, this.y + 6, this.w - 12, this.h - 10); }
+  cx() { return this.x + this.w / 2; }
+  cy() { return this.y + this.h / 2; }
+  face() { this.f = this.g.player.cx() > this.cx() ? 1 : -1; }
+  start() { this.state = 'intro'; this.t = 0; }
+  get vulnerable() { return this.state === 'fight' && !this.roaring && !this.fx.ghost; }
+  get contact_on() { return (this.state === 'intro' || this.state === 'fight') && !this.fx.ghost && this.state !== 'intro'; }
+  tell(sec, strong = false) { this.tell_t = sec; this.tell_strong = strong; }
+  *wait(sec, fx = {}) {
+    const n = Math.max(1, Math.trunc(sec * FPS * this.tempo));
+    for (let i = 0; i < n; i++) { Object.assign(this.fx, fx); yield; }
+  }
+  attacks() { return []; }
+  pick() {
+    let names = this.attacks();
+    if (names.length > 1) { const f = names.filter(n => n !== this.last); names = f.length ? f : names; }
+    this.last = choice(names);
+    return this[this.last]();
+  }
+  end_attack() { this.vx = 0.0; this.gravity = this.has_grav; }
+  *roar() {
+    this.roaring = true;
+    this.tell(1.1, true);
+    this.g.shake(14);
+    this.g.parts.burst(this.cx(), this.cy(), 30, [255, 220, 160], 380, 0.7, 4, 0);
+    yield* this.wait(1.1, { roar: true });
+    this.roaring = false;
+  }
+  damage(amt) {
+    const s = this;
+    if (!s.vulnerable) return false;
+    s.hp -= amt;
+    s.flash = 5;
+    s.g.parts.burst(s.cx(), s.cy(), 7, [255, 240, 220], 240, 0.35, 3, 200);
+    if (s.hp <= 0) {
+      s.hp = 0; s.state = 'dying'; s.dead_t = 0; s.script = null; s.hb = [];
+      s.g.on_boss_dying(s);
+    }
+    return true;
+  }
+  physics() {
+    if (this.gravity) this.vy = Math.min(this.vy + GRAV * DT, 1500);
+    this.g.world.move(this, this.vx * DT, this.vy * DT);
+    if (this.hy) this.vy = 0.0;
+  }
+  update() {
+    const s = this;
+    s.t += 1;
+    if (s.flash > 0) s.flash -= 1;
+    if (s.tell_t > 0) s.tell_t -= DT;
+    s.hb = []; s.fx = {}; s.contact = WEAK;
+    if (s.state === 'intro') {
+      s.fx.roar = true;
+      if (s.t > 100) { s.state = 'fight'; s.pause = 20; }
+      s.physics();
+    } else if (s.state === 'fight') {
+      if (!s.enraged && s.hp <= s.max_hp * 0.5) {
+        s.enraged = true; s.tempo = 0.78;
+        s.end_attack();
+        s.script = s.roar();
+        s.g.clear_hostile();
+      }
+      if (s.script === null) {
+        if (s.pause > 0) s.pause -= 1;
+        else s.script = s.pick();
+      }
+      if (s.script !== null) {
+        const r = s.script.next();
+        if (r.done) {
+          s.script = null; s.pause = Math.trunc(s.rest * s.tempo);
+          s.end_attack();
+        }
+      }
+      s.physics();
+    } else if (s.state === 'dying') {
+      s.dead_t += 1;
+      s.fx.dying = true;
+      s.vx = 0.0;
+      s.physics();
+      if (s.dead_t % 4 === 0)
+        s.g.parts.burst(s.cx() + uniform(-s.w / 2, s.w / 2), s.cy() + uniform(-s.h / 2, s.h / 2), 6, [255, 235, 200], 220, 0.6, 4, 100);
+      if (s.dead_t > 150) { s.state = 'dead'; s.g.on_boss_dead(s); }
+    }
+  }
+  draw(surf, cam) {
+    const s = this;
+    if (s.state === 'dead') return;
+    const spr = scratch(s.SW, s.SH);
+    const p = new Pen(spr, s.OX, s.OY, s.f);
+    s.art(p, s.g.tick / 60.0);
+    if (s.flash || (s.state === 'dying' && Math.floor(s.dead_t / 2) % 2 === 0)) flashSprite(spr, 0.47);
+    const jx = (s.fx.roar || s.state === 'dying') ? randint(-2, 2) : 0;
+    surf.globalAlpha = s.fx.ghost ? 110 / 255 : 1;
+    surf.drawImage(spr.canvas, Math.trunc(s.cx() - cam[0]) - s.OX + jx, Math.trunc(s.y + s.h - cam[1]) - s.OY);
+    surf.globalAlpha = 1;
+    s.draw_fx(surf, cam);
+    if (s.tell_t > 0 && s.state === 'fight') {
+      const x = Math.trunc(s.cx() - cam[0]), y = Math.trunc(s.y - cam[1]) - Math.floor(s.OY / 6) - 20;
+      const r = 11 + Math.trunc(2 * Math.sin(s.t * 0.5));
+      const col = s.tell_strong ? [255, 66, 66] : [255, 214, 70];
+      dCirc(surf, [30, 10, 10], x, y, r + 3);
+      dCirc(surf, col, x, y, r);
+      for (const dx of (s.tell_strong ? [-4, 4] : [0])) {
+        dRect(surf, [30, 10, 10], x + dx - 1, y - 7, 3, 9);
+        dRect(surf, [30, 10, 10], x + dx - 1, y + 4, 3, 3);
+      }
+    }
+  }
+  draw_fx() { }
+  art() { }
+}
+
+// ---------------------------------------------------------------- 1. THORNMOTHER
+class Thornmother extends Boss {
+  name = "THORNMOTHER"; title = "the Briar Queen"; max_hp = 240;
+  w = 118; h = 92; rest = 34;
+  SW = 460; SH = 300; OX = 230; OY = 280;
+
+  attacks() {
+    const d = Math.abs(this.g.player.cx() - this.cx());
+    return ['a_volley', 'a_burst', 'a_charge'].concat(d < 320 ? ['a_lash', 'a_lash'] : ['a_volley']);
+  }
+  *a_lash() {
+    const s = this;
+    s.face(); s.tell(0.5);
+    yield* s.wait(0.5, { rear: true });
+    for (let i = 0; i < 16; i++) {
+      const reach = 70 + i * 9;
+      const bx = s.f > 0 ? s.x + s.w : s.x - reach;
+      s.hb.push([new Rect(bx, s.floor - 40, reach, 40), WEAK]);
+      s.fx.lash = reach;
+      yield;
+    }
+    yield* s.wait(0.35);
+  }
+  *a_volley() {
+    const s = this;
+    s.face(); s.tell(0.45);
+    yield* s.wait(0.45, { rear: true });
+    const n = s.enraged ? 5 : 3;
+    for (let k = 0; k < n; k++) {
+      s.face();
+      const pl = s.g.player;
+      const ox = s.cx() + s.f * 54, oy = s.y + 30;
+      const a = Math.atan2(pl.cy() - oy, pl.cx() - ox) + (k - (n - 1) / 2) * 0.2;
+      s.g.projs.push(new Proj(ox, oy, Math.cos(a) * 370, Math.sin(a) * 370, 26, 12, WEAK, 'thorn'));
+      s.g.shake(1);
+      yield* s.wait(0.14);
+    }
+    yield* s.wait(0.3);
+  }
+  *a_burst() {
+    const s = this;
+    s.tell(0.5, true);
+    const px = s.g.player.cx();
+    let xs = [px, px - 150, px + 150].concat(s.enraged ? [px - 300, px + 300] : []);
+    xs = xs.map(x => clamp(x, s.L + 26, s.R - 26));
+    yield* s.wait(0.95, { marks: xs, rear: true });
+    s.g.shake(8);
+    for (let i = 0; i < 26; i++) {
+      s.fx.cols = xs;
+      for (const x of xs) s.hb.push([new Rect(x - 22, s.floor - 150, 44, 150), STRONG]);
+      yield;
+    }
+    yield* s.wait(0.5);
+  }
+  *a_charge() {
+    const s = this;
+    s.face(); s.tell(0.8, true);
+    yield* s.wait(0.8, { rear: true });
+    const d = s.f;
+    for (let i = 0; i < 130; i++) {
+      s.vx = d * (s.enraged ? 700 : 610);
+      s.contact = STRONG;
+      if (i % 4 === 0) s.g.parts.burst(s.cx() - d * 40, s.floor - 6, 2, [120, 100, 80], 90, 0.4, 3, -40);
+      if (s.hx && i > 3) break;
+      yield;
+    }
+    s.vx = 0.0;
+    if (s.hx) {
+      s.g.shake(12);
+      for (let k = 0; k < (s.enraged ? 5 : 3); k++)
+        s.g.projs.push(new Proj(uniform(s.L + 40, s.R - 40), s.top + 12, 0, 520, 14, 30, WEAK, 'thorn', { life: 2.5, wall: true }));
+    }
+    yield* s.wait(1.0, { stun: true });
+  }
+  draw_fx(surf, cam) {
+    const s = this;
+    const fl = Math.trunc(s.floor - cam[1]);
+    for (let x of (s.fx.marks || [])) {
+      x = Math.trunc(x - cam[0]);
+      const k = 5 + Math.trunc(4 * Math.sin(s.t * 0.6));
+      dPoly(surf, [255, 110, 60], [[x - 20, fl], [x, fl - 16 - k], [x + 20, fl]]);
+      dLine(surf, [255, 200, 120], [x - 30, fl - 1], [x + 30, fl - 1], 3);
+    }
+    for (let x of (s.fx.cols || [])) {
+      x = Math.trunc(x - cam[0]);
+      for (const [dx, hh, ww] of [[0, 150, 24], [-26, 90, 14], [26, 90, 14], [-42, 46, 10], [42, 46, 10]]) {
+        dPoly(surf, [86, 118, 60], [[x + dx - ww, fl], [x + dx, fl - hh], [x + dx + ww, fl]]);
+        dPoly(surf, [226, 208, 156], [[x + dx - 3, fl], [x + dx, fl - hh], [x + dx + Math.floor(ww / 2), fl]]);
+      }
+    }
+    const L = s.fx.lash;
+    if (L) {
+      const bx = (s.f > 0 ? s.x + s.w : s.x) - cam[0];
+      const pts = range(9).map(i => [bx + s.f * i * L / 8, fl - 20 + Math.sin(i * 1.5 + s.t * 0.6) * 9]);
+      dLines(surf, [50, 92, 40], pts, 9);
+      dLines(surf, [110, 170, 70], pts, 3);
+      for (let i = 2; i < 9; i += 2) {
+        const [px, py] = pts[i];
+        dPoly(surf, [226, 208, 156], [[px - 5, py], [px, py - 14], [px + 5, py]]);
+      }
+    }
+  }
+  art(p, t) {
+    const s = this;
+    const SH = [48, 68, 42], DK = [26, 38, 24], MS = [98, 142, 64], BN = [226, 208, 156];
+    const eye = s.enraged ? [255, 96, 50] : [255, 188, 64];
+    let bob = Math.sin(t * 2.3) * 2;
+    let rear = s.fx.rear ? 18 : 0;
+    if (s.fx.stun) { rear = -6; bob += 4; }
+    for (let k = 0; k < 4; k++) {
+      const pts = range(6).map(i => [-44 + k * 20 + Math.sin(t * 2.6 + k + i * 0.7) * 5 * i / 4, -86 + bob - i * 13]);
+      p.lines([56, 104, 48], pts, 5);
+      p.circ(BN, pts[5][0], pts[5][1], 3);
+    }
+    for (const lx of [-46, -24, 28, 48]) {
+      p.poly(DK, [[lx - 10, -46], [lx + 10, -46], [lx + 8, -4], [lx - 8, -4]]);
+      p.poly(SH, [[lx - 12, -7], [lx + 12, -7], [lx + 14, 0], [lx - 14, 0]]);
+    }
+    p.ell(DK, -4, -50 + bob, 64, 26);
+    p.ell(SH, -4, -64 + bob, 64, 38);
+    for (let k = 0; k < 5; k++) p.line(DK, [-44 + k * 20, -96 + bob + Math.abs(k - 2) * 3], [-38 + k * 20, -54 + bob], 3);
+    p.ell(MS, -24, -90 + bob, 28, 9); p.ell(MS, 18, -94 + bob, 20, 7); p.ell(MS, -52, -72 + bob, 10, 6);
+    for (let k = 0; k < 9; k++) {
+      const x = -54 + k * 13, hh = 20 + ((k * 5) % 3) * 9, base = -98 + bob + Math.abs(k - 4) * 2.5;
+      p.poly(BN, [[x - 6, base], [x, base - hh], [x + 6, base]]);
+    }
+    const hx = 62, hy = -62 + bob - rear;
+    p.poly(SH, [[hx - 20, hy - 18], [hx + 18, hy - 10], [hx + 36, hy + 8], [hx + 12, hy + 22], [hx - 18, hy + 14]]);
+    p.poly(DK, [[hx + 2, hy + 10], [hx + 36, hy + 8], [hx + 12, hy + 22]]);
+    p.poly(BN, [[hx + 30, hy + 8], [hx + 40, hy + 22], [hx + 22, hy + 14]]);
+    for (const sg of [0, 1]) {
+      const bx = hx - 8 + sg * 16, by = hy - 16;
+      p.lines(BN, [[bx, by], [bx - 6 + sg * 12, by - 22], [bx - 2 + sg * 16, by - 46]], 4);
+      p.lines(BN, [[bx - 5 + sg * 10, by - 20], [bx - 20 + sg * 32, by - 34]], 3);
+    }
+    p.circ(eye, hx + 14, hy - 3, 6); p.circ([255, 244, 200], hx + 15, hy - 4, 2);
+    p.circ(eye, hx - 2, hy - 6, 4);
+  }
+}
+
+// ---------------------------------------------------------------- 2. CRYSTAL WARDEN
+class CrystalWarden extends Boss {
+  name = "CRYSTAL WARDEN"; title = "keeper of the cold light"; max_hp = 320;
+  w = 84; h = 124; rest = 38;
+  SW = 420; SH = 340; OX = 210; OY = 320;
+
+  attacks() {
+    const d = Math.abs(this.g.player.cx() - this.cx());
+    return ['a_beam', 'a_rain', 'a_leap'].concat(d < 340 ? ['a_slash', 'a_slash'] : ['a_leap']);
+  }
+  *a_slash() {
+    const s = this;
+    for (let n = 0; n < 70; n++) {
+      s.face();
+      if (Math.abs(s.g.player.cx() - s.cx()) < 125) break;
+      s.vx = s.f * 240;
+      yield;
+    }
+    s.vx = 0.0;
+    s.tell(0.4);
+    yield* s.wait(0.4, { raise_arm: true });
+    for (let k = 0; k < (s.enraged ? 2 : 1); k++) {
+      s.face();
+      for (let i = 0; i < 14; i++) {
+        const bx = s.cx() + (s.f > 0 ? 10 : -150);
+        s.hb.push([new Rect(bx, s.y + 14, 140, 100), WEAK]);
+        s.fx.slash = i / 14;
+        yield;
+      }
+      if (k === 0 && s.enraged) yield* s.wait(0.18);
+    }
+    yield* s.wait(0.4);
+  }
+  *a_beam() {
+    const s = this;
+    s.face(); s.vx = 0.0;
+    s.tell(1.0, true);
+    yield* s.wait(1.0, { charge: true });
+    for (let r = 0; r < (s.enraged ? 2 : 1); r++) {
+      s.face();
+      for (let i = 0; i < 32; i++) {
+        const x0 = s.cx() + s.f * 30;
+        const rect = new Rect(s.f > 0 ? x0 : s.L, s.floor - 54, s.f > 0 ? (s.R - x0) : (x0 - s.L), 46);
+        s.hb.push([rect, STRONG]);
+        s.fx.beam = rect;
+        if (i === 0) s.g.shake(7);
+        yield;
+      }
+      if (r === 0 && s.enraged) yield* s.wait(0.5, { charge: true });
+    }
+    yield* s.wait(0.5);
+  }
+  *a_rain() {
+    const s = this;
+    s.tell(0.5); s.vx = 0.0;
+    yield* s.wait(0.4, { raise_arm: true });
+    for (let k = 0; k < (s.enraged ? 11 : 7); k++) {
+      const x = clamp(s.g.player.cx() + uniform(-220, 220), s.L + 22, s.R - 22);
+      s.g.projs.push(new Proj(x, s.top + 18, 0, 0, 20, 44, WEAK, 'shard', { life: 3, delay: 0.55, launch: [0, 660] }));
+      yield* s.wait(0.17, { raise_arm: true });
+    }
+    yield* s.wait(0.9);
+  }
+  *a_leap() {
+    const s = this;
+    s.face(); s.tell(0.55, true); s.vx = 0.0;
+    yield* s.wait(0.55, { crouch: true });
+    const T = 0.78;
+    s.vy = -GRAV * T / 2;
+    s.vx = clamp((s.g.player.cx() - s.cx()) / T, -560, 560);
+    for (let i = 0; i < 120; i++) {
+      if (i > 10) s.contact = STRONG;
+      yield;
+      if (i > 10 && s.hy === 1) break;
+    }
+    s.vx = 0.0;
+    s.g.shake(12);
+    for (const d of [-1, 1]) s.g.projs.push(new Proj(s.cx() + d * 50, s.floor - 18, d * 440, 0, 46, 34, STRONG, 'quake', { life: 1.5 }));
+    for (let i = 0; i < 7; i++) {
+      s.hb.push([new Rect(s.cx() - 85, s.floor - 72, 170, 72), STRONG]);
+      s.fx.slam = true;
+      yield;
+    }
+    yield* s.wait(0.8);
+  }
+  draw_fx(surf, cam) {
+    const s = this;
+    const b = s.fx.beam;
+    if (b) {
+      const r = new Rect(b.x - Math.trunc(cam[0]), b.y - Math.trunc(cam[1]), b.w, b.h);
+      const k = Math.trunc(5 * Math.sin(s.t * 1.3));
+      let q = r.inflate(0, 10 + k); dRect(surf, [70, 170, 255], q.x, q.y, q.w, q.h);
+      q = r.inflate(0, -6 + k); dRect(surf, [150, 225, 255], q.x, q.y, q.w, q.h);
+      q = r.inflate(0, -26); dRect(surf, [255, 255, 255], q.x, q.y, q.w, q.h);
+    }
+    const sl = s.fx.slash;
+    if (sl !== undefined) {
+      const cx = s.cx() - cam[0] + s.f * 70, cy = s.y + 70 - cam[1];
+      crescent(surf, cx, cy, s.f > 0 ? 0 : Math.PI, 96 - 20 * sl, 52, [200, 230, 255], 1.1);
+    }
+    if (s.fx.slam) dEll(surf, [190, 225, 255], Math.trunc(s.cx() - cam[0]), Math.trunc(s.floor - cam[1] - 26) + 15, 90, 15, 3);
+  }
+  art(p, t) {
+    const s = this;
+    const CR = [112, 86, 200], CD = [56, 40, 118], CL = [200, 174, 255], CY = [150, 236, 255], ST = [72, 66, 100];
+    let bob = Math.sin(t * 2) * 2;
+    const crouch = s.fx.crouch ? 14 : 0;
+    const glow = s.fx.charge || s.tell_t > 0;
+    const core = glow ? [255, 255, 255] : CY;
+    bob += crouch;
+    for (const lx of [-19, 19]) {
+      p.poly(ST, [[lx - 13, -62 + crouch], [lx + 13, -62 + crouch], [lx + 11, 0], [lx - 11, 0]]);
+      p.poly(CD, [[lx - 15, -8], [lx + 15, -8], [lx + 18, 0], [lx - 18, 0]]);
+      p.poly(CL, [[lx - 6, -30], [lx, -44], [lx + 6, -30]]);
+    }
+    p.line(CD, [-36, -100 + bob], [-48, -50 + bob], 17);
+    p.poly(CR, [[-56, -50 + bob], [-48, -34 + bob], [-40, -50 + bob]]);
+    p.poly(CR, [[-36, -64 + bob], [36, -64 + bob], [46, -106 + bob], [0, -118 + bob], [-46, -106 + bob]]);
+    p.poly(CD, [[-36, -64 + bob], [0, -72 + bob], [36, -64 + bob], [28, -82 + bob], [-28, -82 + bob]]);
+    p.line(CL, [-30, -100 + bob], [-8, -108 + bob], 2);
+    p.circ(shade(CY, 0.6), 0, -90 + bob, 13);
+    p.circ(core, 0, -90 + bob, 9);
+    p.circ([255, 255, 255], 0, -90 + bob, 4);
+    for (const sg of [-1, 1]) {
+      p.poly(CL, [[sg * 38, -104 + bob], [sg * 46, -140 + bob], [sg * 24, -110 + bob]]);
+      p.poly(CR, [[sg * 46, -100 + bob], [sg * 68, -128 + bob], [sg * 56, -96 + bob]]);
+    }
+    let ex, ey;
+    if (s.fx.slash !== undefined) { const q = s.fx.slash; ex = 20 + 70 * Math.sin(q * 3); ey = -100 + 70 * q; }
+    else if (s.fx.raise_arm || s.fx.charge) { ex = 34; ey = -150; }
+    else { ex = 56; ey = -48; }
+    p.line(CR, [38, -100 + bob], [ex, ey + bob], 17);
+    p.poly(CL, [[ex - 9, ey + bob], [ex + 4, ey - 22 + bob], [ex + 12, ey + bob]]);
+    p.poly(CR, [[ex - 6, ey + 8 + bob], [ex + 14, ey + 8 + bob], [ex + 4, ey + 24 + bob]]);
+    p.poly(CD, [[-15, -118 + bob], [15, -118 + bob], [18, -138 + bob], [0, -150 + bob], [-18, -138 + bob]]);
+    p.poly(!glow ? CY : [255, 255, 255], [[2, -133 + bob], [16, -131 + bob], [13, -126 + bob], [2, -127 + bob]]);
+    for (const [x, hh] of [[-9, 20], [0, 28], [9, 18]]) p.poly(CL, [[x - 4, -144 + bob], [x, -144 - hh + bob], [x + 4, -144 + bob]]);
+  }
+}
+
+// ---------------------------------------------------------------- 3. TIDECALLER (flies)
+class Tidecaller extends Boss {
+  name = "TIDECALLER"; title = "the drowned siren"; max_hp = 330;
+  w = 80; h = 104; rest = 30; lift = 150;
+  SW = 440; SH = 340; OX = 220; OY = 250;
+  has_grav = false;
+
+  reset() {
+    super.reset();
+    this.mode = 'goal'; this.sp = 0.05;
+    this.gx = this.cx(); this.gy = this.cy();
+  }
+  attacks() { return ['a_bubbles', 'a_pearls', 'a_wave', 'a_swoop']; }
+  physics() {
+    const s = this;
+    if (s.state === 'dying') { s.mode = 'goal'; s.gy = s.floor - s.h / 2; s.sp = 0.03; }
+    if (s.mode === 'goal') {
+      s.x += (s.gx - s.cx()) * s.sp;
+      s.y += (s.gy - s.cy()) * s.sp + Math.sin(s.t * 0.06) * 0.7;
+    } else { s.x += s.vx * DT; s.y += s.vy * DT; }
+    s.x = clamp(s.x, s.L, s.R - s.w);
+    s.y = clamp(s.y, s.top, s.floor - s.h);
+    s.hx = s.hy = 0;
+  }
+  end_attack() { this.mode = 'goal'; this.vx = 0.0; this.vy = 0.0; this.sp = 0.05; }
+  go(x, y, sp = 0.06) { this.mode = 'goal'; this.gx = x; this.gy = y; this.sp = sp; }
+
+  *a_bubbles() {
+    const s = this, pl = s.g.player;
+    s.go(pl.cx() < (s.L + s.R) / 2 ? s.R - 130 : s.L + 130, s.floor - 240);
+    yield* s.wait(0.7);
+    s.face(); s.tell(0.45);
+    yield* s.wait(0.45, { open: true });
+    for (let k = 0; k < (s.enraged ? 8 : 5); k++) {
+      s.face();
+      const a = Math.atan2(pl.cy() - s.cy(), pl.cx() - s.cx()) + uniform(-0.5, 0.5);
+      s.g.projs.push(new Proj(s.cx() + s.f * 30, s.cy(), Math.cos(a) * 190, Math.sin(a) * 190, 34, 34, WEAK, 'bubble', { life: 5, hp: 1, home: 1.5 }));
+      yield* s.wait(0.26, { open: true });
+    }
+    yield* s.wait(0.5);
+  }
+  *a_pearls() {
+    const s = this, pl = s.g.player;
+    const side = pl.cx() < (s.L + s.R) / 2 ? 1 : -1;
+    s.go(clamp(pl.cx() + side * 280, s.L + 60, s.R - 60), s.floor - 180);
+    yield* s.wait(0.65);
+    s.face(); s.tell(0.4);
+    yield* s.wait(0.4, { open: true });
+    for (let k = 0; k < (s.enraged ? 5 : 3); k++) {
+      s.face();
+      const a = Math.atan2(pl.cy() - s.cy(), pl.cx() - s.cx());
+      s.g.projs.push(new Proj(s.cx() + s.f * 30, s.cy(), Math.cos(a) * 530, Math.sin(a) * 530, 22, 22, WEAK, 'pearl', { life: 3 }));
+      yield* s.wait(0.3, { open: true });
+    }
+    yield* s.wait(0.4);
+  }
+  *a_wave() {
+    const s = this;
+    s.go((s.L + s.R) / 2, s.floor - 250);
+    yield* s.wait(0.6);
+    s.face();
+    const sides = [choice([-1, 1])];
+    if (s.enraged) sides.push(-sides[0]);
+    for (let n = 0; n < sides.length; n++) {
+      const side = sides[n];
+      const ox = side < 0 ? s.L + 36 : s.R - 36;
+      s.tell(0.9, true);
+      yield* s.wait(0.95, { marks: [ox], open: true });
+      s.g.projs.push(new Proj(ox, s.floor - 42, -side * 360, 0, 70, 84, STRONG, 'wave', { life: 3.4, wall: false }));
+      s.g.shake(5);
+      if (n < sides.length - 1) yield* s.wait(0.8, { open: true });
+    }
+    yield* s.wait(1.2);
+  }
+  *a_swoop() {
+    const s = this, pl = s.g.player;
+    const side = pl.cx() > (s.L + s.R) / 2 ? -1 : 1;
+    const ey = clamp(pl.cy(), s.floor - 210, s.floor - 80);
+    s.go(side < 0 ? s.L + 70 : s.R - 70, ey, 0.1);
+    yield* s.wait(0.7);
+    s.f = -side;
+    s.tell(0.75, true);
+    s.gy = ey;
+    yield* s.wait(0.75, { lane: ey });
+    s.mode = 'free'; s.vx = -side * 780; s.vy = 0.0;
+    s.f = -side;
+    for (let i = 0; i < 90; i++) {
+      s.contact = STRONG;
+      s.fx.rush = true;
+      if ((s.vx > 0 && s.x >= s.R - s.w - 3) || (s.vx < 0 && s.x <= s.L + 3)) break;
+      yield;
+    }
+    s.end_attack();
+    yield* s.wait(0.4);
+  }
+  draw_fx(surf, cam) {
+    const s = this;
+    const ln = s.fx.lane;
+    if (ln !== undefined) {
+      const y = Math.trunc(ln - cam[1]);
+      for (let x = Math.trunc(s.L - cam[0]); x < Math.trunc(s.R - cam[0]); x += 30) dLine(surf, [255, 110, 120], [x, y], [x + 16, y], 3);
+      dRect(surf, [255, 110, 120], Math.trunc(s.L - cam[0]), y - 54, Math.trunc(s.R - s.L), 2);
+      dRect(surf, [255, 110, 120], Math.trunc(s.L - cam[0]), y + 52, Math.trunc(s.R - s.L), 2);
+    }
+    for (let x of (s.fx.marks || [])) {
+      x = Math.trunc(x - cam[0]); const fl = Math.trunc(s.floor - cam[1]);
+      for (let k = 0; k < 4; k++) {
+        const hh = 20 + Math.trunc(14 * Math.sin(s.t * 0.4 + k)) + k * 6;
+        dPoly(surf, [120, 220, 255], [[x - 30 + k * 18, fl], [x - 22 + k * 18, fl - hh], [x - 14 + k * 18, fl]]);
+      }
+      dLine(surf, [255, 110, 120], [x, fl - 100], [x, fl - 150], 3);
+    }
+  }
+  art(p, t) {
+    const s = this;
+    const TL = [110, 204, 218], TD = [52, 120, 160], SK = [238, 226, 226], KP = [50, 130, 96], CO = [255, 96, 110];
+    const awake = s.fx.open || s.fx.rush || s.tell_t > 0 || s.enraged;
+    const sw = (k, a = 1.0) => Math.sin(t * 3 + k) * 5 * a;
+    for (let k = 0; k < 6; k++) {
+      const x0 = -26 + k * 10.4;
+      p.lines(k % 2 ? TD : [96, 70, 160], [[x0, -44], [x0 + sw(k), -22], [x0 - sw(k, .8), 0], [x0 + sw(k + 2), 22]], 6);
+    }
+    for (const sg of [-1, 1]) {
+      for (let j = 0; j < 3; j++) {
+        const pts = range(6).map(i => [sg * (14 + j * 5) + sw(j + i, 1 + i * .4) * sg, -72 + i * 22]);
+        p.lines(shade(KP, 0.8 + j * 0.2), pts, 7 - j);
+      }
+    }
+    p.ell(TL, 0, -74, 40, 34);
+    p.ell(shade(TL, 1.25), -8, -88, 22, 12);
+    p.ell(TD, 0, -50, 40, 8);
+    p.ell(SK, 0, -64, 17, 20);
+    const ec = awake ? [255, 255, 255] : [60, 70, 90];
+    if (awake) {
+      p.ell(ec, 6, -66, 4, 5); p.ell(ec, -6, -66, 4, 5);
+      p.circ([120, 240, 255], 6, -66, 2); p.circ([120, 240, 255], -6, -66, 2);
+    } else {
+      p.line(ec, [3, -66], [10, -65], 2); p.line(ec, [-3, -66], [-10, -65], 2);
+    }
+    p.ell([220, 110, 130], 4, -55, 3, 2);
+    for (const [x, hh] of [[-14, 20], [-6, 30], [3, 24], [11, 32], [19, 18]]) p.poly(CO, [[x - 4, -96], [x, -96 - hh], [x + 4, -96]]);
+    const ax = 48 + (s.fx.open ? 10 : 0);
+    p.line(TD, [28, -56], [ax - 6, -52 + sw(1)], 5);
+    p.line(TD, [-28, -56], [-ax + 12, -48], 5);
+    p.circ([255, 170, 215], ax, -52 + sw(1), awake ? 11 : 8);
+    p.circ([255, 248, 252], ax, -52 + sw(1), awake ? 6 : 4);
+  }
+}
+
+// ---------------------------------------------------------------- 4. THE HOLLOW KING
+class HollowKing extends Boss {
+  name = "THE HOLLOW KING"; title = "crown without a head"; max_hp = 440;
+  w = 66; h = 118; rest = 30;
+  SW = 480; SH = 380; OX = 240; OY = 340;
+
+  attacks() { return ['a_combo', 'a_phantom', 'a_slam', 'a_spears'].concat(this.enraged ? ['a_eclipse'] : []); }
+  slash_boxes(i, n, dmg) {
+    const s = this;
+    const bx = s.cx() + (s.f > 0 ? 8 : -158);
+    s.hb.push([new Rect(bx, s.y + 24, 150, 94), dmg]);
+    s.fx.slash = [i / n, dmg === STRONG];
+  }
+  *a_combo() {
+    const s = this;
+    for (let n = 0; n < 60; n++) {
+      s.face();
+      if (Math.abs(s.g.player.cx() - s.cx()) < 110) break;
+      s.vx = s.f * 540;
+      yield;
+    }
+    s.vx = 0.0;
+    const n = s.enraged ? 3 : 2;
+    for (let k = 0; k < n; k++) {
+      s.face();
+      const strong = s.enraged && k === n - 1;
+      const sec = k === 0 ? 0.34 : 0.22;
+      s.tell(sec, strong);
+      yield* s.wait(sec, { raised: true });
+      s.vx = s.f * 170;
+      for (let i = 0; i < 10; i++) { s.slash_boxes(i, 10, strong ? STRONG : WEAK); yield; }
+      s.vx = 0.0;
+    }
+    yield* s.wait(0.5);
+  }
+  *a_phantom() {
+    const s = this, pl = s.g.player;
+    s.tell(0.3);
+    yield* s.wait(0.3, { ghost: true });
+    const tx = clamp(pl.cx() - pl.face * 105, s.L + 40, s.R - 40);
+    yield* s.wait(0.5, { ghost: true, marks: [tx] });
+    s.x = tx - s.w / 2; s.y = s.floor - s.h; s.vy = 0.0;
+    s.face(); s.tell(0.26);
+    yield* s.wait(0.26, { raised: true });
+    for (let i = 0; i < 10; i++) { s.slash_boxes(i, 10, WEAK); yield; }
+    yield* s.wait(0.5);
+  }
+  *a_slam() {
+    const s = this;
+    s.tell(0.4, true);
+    yield* s.wait(0.4, { crouch: true });
+    s.gravity = false; s.vx = 0.0; s.vy = -1300;
+    for (let i = 0; i < 40; i++) {
+      yield;
+      if (s.y < s.top + 24) break;
+    }
+    s.vy = 0.0;
+    for (let i = 0; i < 22; i++) {
+      s.vx = clamp((s.g.player.cx() - s.cx()) * 9, -760, 760);
+      s.fx.raised = true;
+      yield;
+    }
+    s.vx = 0.0;
+    s.tell(0.5, true);
+    yield* s.wait(0.5, { raised: true });
+    s.gravity = true; s.vy = 1500;
+    for (let i = 0; i < 70; i++) {
+      s.contact = STRONG;
+      s.fx.dive = true;
+      yield;
+      if (i > 3 && s.hy === 1) break;
+    }
+    s.g.shake(15);
+    for (const d of [-1, 1]) s.g.projs.push(new Proj(s.cx() + d * 50, s.floor - 14, d * 340, 0, 40, 28, WEAK, 'void', { life: 2.6 }));
+    for (let i = 0; i < 7; i++) {
+      s.hb.push([new Rect(s.cx() - 95, s.floor - 100, 190, 100), STRONG]);
+      s.fx.slam = true;
+      yield;
+    }
+    yield* s.wait(0.9);
+  }
+  *a_spears() {
+    const s = this;
+    s.tell(0.5, true); s.vx = 0.0;
+    yield* s.wait(0.5, { raised: true });
+    for (let k = 0; k < (s.enraged ? 7 : 5); k++) {
+      const pl = s.g.player;
+      const sx = clamp(pl.cx() + uniform(-280, 280), s.L + 30, s.R - 30);
+      const sy = s.top + 40 + uniform(0, 60);
+      const a = Math.atan2(pl.cy() - sy, pl.cx() - sx);
+      s.g.projs.push(new Proj(sx, sy, 0, 0, 26, 26, STRONG, 'spear', { life: 3, delay: 0.75, launch: [Math.cos(a) * 900, Math.sin(a) * 900] }));
+      yield* s.wait(0.32, { raised: true });
+    }
+    yield* s.wait(1.0);
+  }
+  *a_eclipse() {
+    const s = this;
+    s.tell(0.6); s.vx = 0.0;
+    yield* s.wait(0.9, { raised: true, orb: true });
+    for (let ring = 0; ring < 2; ring++) {
+      for (let k = 0; k < 14; k++) {
+        const a = k * TAU / 14 + ring * TAU / 28;
+        s.g.projs.push(new Proj(s.cx(), s.y - 40, Math.cos(a) * 250, Math.sin(a) * 250, 20, 20, WEAK, 'void', { life: 4 }));
+      }
+      s.g.shake(4);
+      yield* s.wait(0.7, { raised: true });
+    }
+    yield* s.wait(0.6);
+  }
+  draw_fx(surf, cam) {
+    const s = this;
+    const sl = s.fx.slash;
+    if (sl) {
+      const [q, strong] = sl;
+      const cx = s.cx() - cam[0] + s.f * 74, cy = s.y + 74 - cam[1];
+      crescent(surf, cx, cy, s.f > 0 ? 0 : Math.PI, 104 - 24 * q, 56, strong ? [255, 120, 220] : [210, 190, 255], 1.15);
+    }
+    if (s.fx.slam) dEll(surf, [230, 130, 230], Math.trunc(s.cx() - cam[0]), Math.trunc(s.floor - cam[1] - 28) + 16, 100, 16, 3);
+    for (let x of (s.fx.marks || [])) {
+      x = Math.trunc(x - cam[0]); const fl = Math.trunc(s.floor - cam[1]);
+      dEll(surf, [200, 100, 255], x, fl - 12 + 8, 34, 8, 3);
+      dLine(surf, [200, 100, 255], [x, fl - 12], [x, fl - 130], 2);
+    }
+    if (s.fx.orb) {
+      const x = Math.trunc(s.cx() - cam[0]), y = Math.trunc(s.y - 70 - cam[1]);
+      dCirc(surf, [230, 120, 220], x, y, 34 + Math.trunc(4 * Math.sin(s.t * 0.5)), 3);
+      dCirc(surf, [10, 4, 16], x, y, 30);
+    }
+  }
+  art(p, t) {
+    const s = this;
+    const BK = [20, 14, 32], IN = [46, 32, 80], VI = [120, 64, 180], GL = [240, 198, 92], WH = [232, 226, 240];
+    const EY = [210, 244, 255];
+    let bob = Math.sin(t * 2.2) * 1.5;
+    const crouch = s.fx.crouch ? 16 : 0;
+    bob += crouch;
+    const sway = -clamp(s.vx * s.f * 0.03, -18, 18);
+    p.poly(shade(VI, 0.45), [[-10, -100 + bob], [10, -100 + bob], [16, -30], [-4 + sway, 2], [-36 + sway * 1.6, -6], [-30, -52]]);
+    p.poly(shade(VI, 0.7), [[-8, -98 + bob], [4, -98 + bob], [4, -30], [-30 + sway * 1.4, -4], [-26, -56]]);
+    for (const lx of [-14, 14]) {
+      p.poly(BK, [[lx - 11, -58 + crouch], [lx + 11, -58 + crouch], [lx + 9, 0], [lx - 9, 0]]);
+      p.poly(IN, [[lx - 12, -34], [lx + 12, -34], [lx + 10, -12], [lx - 10, -12]]);
+      p.poly(GL, [[lx - 12, -34], [lx + 12, -34], [lx + 12, -31], [lx - 12, -31]]);
+      p.poly(BK, [[lx - 12, -6], [lx + 16, -6], [lx + 18, 0], [lx - 12, 0]]);
+    }
+    p.poly(IN, [[-24, -62 + bob], [24, -62 + bob], [30, -102 + bob], [-30, -102 + bob]]);
+    p.poly(GL, [[-24, -62 + bob], [24, -62 + bob], [25, -66 + bob], [-25, -66 + bob]]);
+    p.line(GL, [0, -66 + bob], [0, -100 + bob], 2);
+    p.circ(VI, 0, -84 + bob, 6); p.circ(EY, 0, -84 + bob, 3);
+    for (const sg of [-1, 1]) {
+      p.poly(BK, [[sg * 22, -104 + bob], [sg * 44, -98 + bob], [sg * 46, -80 + bob], [sg * 26, -86 + bob]]);
+      p.poly(GL, [[sg * 22, -104 + bob], [sg * 44, -98 + bob], [sg * 44, -95 + bob], [sg * 22, -100 + bob]]);
+      p.poly(VI, [[sg * 40, -98 + bob], [sg * 50, -118 + bob], [sg * 46, -94 + bob]]);
+    }
+    p.ell(BK, 0, -118 + bob, 16, 18);
+    p.poly(BK, [[-13, -108 + bob], [13, -108 + bob], [9, -90 + bob], [-9, -90 + bob]]);
+    p.ell([6, 4, 12], 2, -116 + bob, 11, 12);
+    p.ell(EY, 7, -118 + bob, 4, 2); p.ell(EY, -2, -118 + bob, 4, 2);
+    for (const [x, hh, bk] of [[-11, 16, 0], [-3, 24, 0], [6, 12, 1], [13, 18, 0]])
+      p.poly(GL, [[x - 4, -132 + bob], [x + (bk ? 3 : 0), -132 - hh + bob], [x + 4, -132 + bob]]);
+    const sl = s.fx.slash;
+    let base, ang;
+    if (sl !== undefined) { base = [24, -72 + bob]; ang = -1.2 + sl[0] * 1.6; }
+    else if (s.fx.raised || s.tell_t > 0) { base = [20, -96 + bob]; ang = -1.45; }
+    else if (s.fx.dive) { base = [14, -96 + bob]; ang = 1.45; }
+    else { base = [26, -62 + bob]; ang = 1.2; }
+    const L = 118;
+    const tip = [base[0] + Math.cos(ang) * L, base[1] + Math.sin(ang) * L];
+    p.line([80, 40, 130], base, tip, 11);
+    p.line([196, 190, 224], base, tip, 6);
+    p.line(WH, base, tip, 2);
+    const px = -Math.sin(ang) * 14, py = Math.cos(ang) * 14;
+    p.line(GL, [base[0] - px, base[1] - py], [base[0] + px, base[1] + py], 5);
+    p.line(BK, base, [base[0] - Math.cos(ang) * 22, base[1] - Math.sin(ang) * 22], 6);
+    p.circ(BK, 20, base[1] + 6, 8);
+  }
+}
+
+const BOSSES = [Thornmother, CrystalWarden, Tidecaller, HollowKing];
+const REWARDS = ['dash', 'dj', 'wall', null];
+
+// ------------------------------------------------------------------ story data
+const QUEST = ['Slay Thornmother', 'Slay the Crystal Warden', 'Slay Tidecaller', 'Slay the Hollow King'];
+const ABIL_INFO = {
+  dash: ["DUSK CLOAK", "Press SHIFT or X to dash - you are untouchable while dashing."],
+  dj: ["GALE FEATHER", "Press SPACE again in mid-air to double jump."],
+  wall: ["BRIAR TALONS", "Hold toward a wall in mid-air to cling, then SPACE to wall-jump."]
+};
+const NPC_TEXT = {
+  0: {
+    before: ["Ah, a traveller. Few walk the Gloamwood road these days.",
+      "Thornmother, the Briar Queen, has choked the forest. Our lanterns are failing one by one.",
+      "Slay her, wanderer, and the road opens again. Light the lanterns as you go - they will call you back."],
+    after: ["The thorns are withering already. You did what none of us could.",
+      "Take the last of our lantern oil. It will refill your spirit."]
+  },
+  1: {
+    before: ["Hm? Another one still breathing...",
+      "Past the Queen, the Crystal Hollows hum with a cold light. The Warden keeps that light.",
+      "He was a gentle guardian once. Break his core and end the humming."],
+    after: ["The humming has stopped. First time in years I can hear my own thoughts.",
+      "Here - a little oil. Spend it wisely."]
+  },
+  2: {
+    before: ["Shh. Do you hear the bell below? That is Tidecaller, singing the drowned back to the shore.",
+      "Her song floods every hall of the Sanctum. Silence her, and the water will finally rest.",
+      "Pop her bubbles. Climb above her waves. And never stand still when she dives."],
+    after: ["The water is calm... I can almost see the floor.",
+      "May the tide forgive us both. Take this oil."]
+  },
+  3: {
+    before: ["...you came. I was a knight of this court, once. Now I am only an echo of a promise.",
+      "The Hollow King wears the crown but nothing remains beneath it. He has forgotten the kingdom, and it cannot sleep.",
+      "End him, wanderer. Let the veil lift."],
+    after: ["The crown is dust... the veil is lifting. Thank you.",
+      "Rest now. You have earned it."]
+  }
+};
+
+// ------------------------------------------------------------------ world things
+class NPC {
+  constructor(tx, ty, name, design, idx) { this.x = tx * TS + TS / 2; this.y = ty * TS; this.name = name; this.design = design; this.idx = idx; }
+  draw(c, cam, t, px) {
+    const s = this;
+    const f = px > s.x ? 1 : -1;
+    const spr = scratch(120, 130);
+    const p = new Pen(spr, 60, 112, f);
+    let b = Math.sin(t * 2 + s.idx) * 1.5;
+    const d = s.design;
+    if (d === 0) {
+      p.poly([78, 88, 128], [[-15, 0], [15, 0], [11, -38 + b], [-11, -38 + b]]);
+      p.poly([226, 190, 90], [[-15, 0], [15, 0], [14, -4], [-14, -4]]);
+      p.line([70, 78, 116], [0, -34 + b], [15, -20], 6);
+      p.line([110, 80, 52], [19, -4], [19, -66], 3);
+      p.circ([226, 196, 170], 0, -47 + b, 8);
+      p.poly([240, 240, 246], [[-7, -45 + b], [7, -45 + b], [5, -26 + b], [0, -20 + b], [-5, -26 + b]]);
+      p.poly([196, 200, 220], [[-9, -50 + b], [9, -50 + b], [6, -58 + b], [-6, -58 + b]]);
+      p.circ([255, 190, 80], 19, -69, 5); p.circ([255, 240, 190], 19, -69, 2);
+    } else if (d === 1) {
+      p.poly([52, 86, 58], [[-13, 0], [13, 0], [9, -34 + b], [-9, -34 + b]]);
+      p.ell([34, 62, 40], 0, -40 + b, 10, 10);
+      p.ell([20, 20, 20], 3, -40 + b, 6, 5);
+      p.circ([200, 255, 160], 5, -41 + b, 1); p.circ([200, 255, 160], 0, -41 + b, 1);
+      p.ell([196, 56, 56], 0, -52 + b, 17, 8);
+      for (const [x, y] of [[-8, -54], [2, -57], [9, -51]]) p.circ([250, 240, 230], x, y + b, 2);
+      p.ell([120, 90, 60], -13, -14, 7, 8);
+      p.line([90, 60, 40], [-9, -26], [-13, -20], 2);
+    } else if (d === 2) {
+      p.poly([98, 72, 152], [[-14, 0], [14, 0], [10, -36 + b], [-10, -36 + b]]);
+      p.ell([60, 44, 100], 0, -40 + b, 10, 9);
+      p.poly([176, 206, 255], [[-10, -46 + b], [10, -46 + b], [0, -82 + b]]);
+      p.poly([230, 244, 255], [[-3, -46 + b], [3, -46 + b], [0, -78 + b]]);
+      p.ell([240, 220, 230], 3, -41 + b, 4, 3);
+      p.poly([240, 200, 90], [[10, -18], [20, -18], [23, -6], [7, -6]]);
+      p.circ([255, 240, 160], 15, -4, 2);
+    } else {
+      b = Math.sin(t * 1.6) * 4;
+      p.poly([176, 190, 226], [[-14, -10 + b], [14, -10 + b], [11, -40 + b], [-11, -40 + b]]);
+      for (let k = 0; k < 3; k++) p.lines([150, 170, 220], [[-8 + k * 8, -10 + b], [-8 + k * 8 + Math.sin(t * 3 + k) * 3, 0 + b], [-8 + k * 8, 8 + b]], 3);
+      p.ell([196, 206, 232], 0, -48 + b, 9, 10);
+      p.line([30, 40, 70], [0, -49 + b], [9, -49 + b], 3);
+      p.poly([110, 220, 230], [[-3, -57 + b], [-14 + Math.sin(t * 3) * 3, -70 + b], [4, -57 + b]]);
+      p.line([220, 230, 250], [17, -2 + b], [17, -56 + b], 3);
+      p.line([220, 230, 250], [11, -44 + b], [23, -44 + b], 3);
+    }
+    c.globalAlpha = d === 3 ? 150 / 255 : 1;
+    c.drawImage(spr.canvas, Math.trunc(s.x - cam[0]) - 60, Math.trunc(s.y - cam[1]) - 112);
+    c.globalAlpha = 1;
+  }
+}
+
+class Pickup {
+  constructor(kind, x, y) { this.kind = kind; this.x = x; this.y = y; this.t = 0.0; }
+  rect() { return new Rect(this.x - 20, this.y - 20, 40, 40); }
+}
+
+// ------------------------------------------------------------------ the game
+function makeVignette() {
+  const c = mkCanvas(W, H), v = c.getContext('2d');
+  for (let i = 0; i < 48; i++) {
+    const a = 150 * Math.pow(1 - i / 48, 2.2) * 0.65 / 255;
+    const x = i * 6, y = Math.trunc(i * 3.4), w = W - i * 12, h = H - Math.trunc(i * 6.8);
+    v.lineWidth = 7; v.strokeStyle = `rgba(0,0,0,${a})`;
+    v.strokeRect(x + 3.5, y + 3.5, w - 7, h - 7);
+  }
+  return c;
+}
+
+const HEART = range(24).map(i => i * TAU / 24).map(a => [Math.pow(Math.sin(a), 3) * 16,
+  -(13 * Math.cos(a) - 5 * Math.cos(2 * a) - 2 * Math.cos(3 * a) - Math.cos(4 * a))]);
+
+const F_S = 'bold 15px sans-serif', F_N = 'bold 20px sans-serif', F_M = 'bold 30px sans-serif', F_B = 'bold 60px sans-serif';
+
+class Game {
+  constructor() {
+    const s = this;
+    s.world = new World(); s.tiles = makeTiles(); s.vig = makeVignette();
+    s.skies = ZONES.map(z => {
+      const c = mkCanvas(W, H), x = c.getContext('2d');
+      for (let y = 0; y < H; y += 4) dRect(x, lerpc(z.sky[0], z.sky[1], y / H), 0, y, W, 4);
+      return c;
+    });
+    s.glows = {}; s.pressed = new Set(); s.keys = new Set();
+    s.tick = 0; s.state = 'title';
+    s.parts = new Particles(); s.projs = [];
+    s.abil = { dash: false, dj: false, wall: false };
+    s.defeated = [false, false, false, false]; s.quests = ['none', 'none', 'none', 'none'];
+    s.lit = new Set([0]); s.shrine = 0; s.seen = new Set(); s.won = false;
+    s.shrine_pos = s.world.shrines.map(([tx, ty]) => [tx * TS + TS / 2, ty * TS]);
+    s.npcs = s.world.npcs.map(n => new NPC(...n));
+    s.player = new Player(s);
+    s.bosses = BOSSES.map((cls, i) => { const b = new cls(s, s.world.arenas[i]); b.reset(); return b; });
+    s.enemies = []; s.pickups = []; s.dialog = null; s.near = null;
+    s.cam = [0.0, 0.0]; s.shk = 0.0; s.hitstop = 0; s.death_t = 0; s.fade = 0;
+    s.bn = null; s.toasts = []; s.zone_cur = 0; s.zone_prev = 0; s.zone_fade = 1.0;
+    s.flash = [[255, 255, 255], 0];
+    s.motes = range(50).map(() => [rnd() * W, rnd() * H, uniform(4, 20), rnd() * 6]);
+    s.map_surf = null;
+    s.has_save = !!s.readSave();
+  }
+  readSave() { try { return localStorage.getItem(SAVE_KEY); } catch (e) { return null; } }
+
+  // ---------------------------------------------------------------- state
+  new_game() {
+    const s = this;
+    Object.assign(s.abil, { dash: false, dj: false, wall: false });
+    s.defeated = [false, false, false, false]; s.quests = ['none', 'none', 'none', 'none'];
+    s.lit = new Set([0]); s.shrine = 0; s.seen = new Set(); s.won = false;
+    s.player.pool = 0;
+    s.enter_world();
+  }
+  enter_world() {
+    const s = this;
+    const [sx, sy] = s.shrine_pos[s.shrine];
+    s.player.place(sx - s.player.w / 2, sy - s.player.h);
+    s.reset_world();
+    s.state = 'play'; s.dialog = null; s.death_t = 0; s.fade = 40;
+    s.snap_camera();
+    s.zone_cur = s.zone_prev = s.zone_of_player();
+    s.banner(ZONES[s.zone_cur].name, ZONES[s.zone_cur].sub);
+  }
+  reset_world() {
+    const s = this;
+    s.enemies = s.world.spawns.map(sp => new Enemy(...sp));
+    s.projs = []; s.pickups = [];
+    s.bosses.forEach((b, i) => {
+      b.reset();
+      if (s.defeated[i]) b.state = 'dead';
+      s.set_gates(b.arena, false);
+      const r = REWARDS[i];
+      if (s.defeated[i] && r && !s.abil[r]) s.pickups.push(new Pickup(r, b.arena.rect.centerx, b.arena.floor - 44));
+    });
+  }
+  set_gates(arena, closed) { for (const [x, y] of arena.gates) this.world.g[y][x] = closed ? 3 : 0; }
+  save() {
+    const s = this;
+    const d = { abil: s.abil, defeated: s.defeated, quests: s.quests, lit: [...s.lit].sort((a, b) => a - b), shrine: s.shrine,
+      seen: [...s.seen].map(k => k.split(',').map(Number)), won: s.won, pool: s.player.pool };
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(d)); s.has_save = true; } catch (e) { }
+  }
+  load() {
+    const s = this;
+    try {
+      const d = JSON.parse(localStorage.getItem(SAVE_KEY));
+      Object.assign(s.abil, d.abil); s.defeated = d.defeated; s.quests = d.quests;
+      s.lit = new Set(d.lit); s.shrine = d.shrine; s.won = d.won || false;
+      s.seen = new Set((d.seen || []).map(c => c[0] + ',' + c[1]));
+      s.player.pool = d.pool || 0;
+      if (!s.defeated || !s.quests || s.shrine === undefined) throw new Error('bad');
+    } catch (e) { return s.new_game(); }
+    s.enter_world();
+  }
+  respawn() { this.enter_world(); this.state = 'play'; }
+
+  // ---------------------------------------------------------------- helpers
+  shake(n) { this.shk = Math.max(this.shk, n); }
+  banner(text, sub = '', dur = 3.2) { this.bn = [text, sub, dur, dur]; }
+  toast(text) { this.toasts.push([text, 4.0]); }
+  flash_screen(col, a) { this.flash = [col, a]; }
+  zone_of_player() {
+    const p = this.player;
+    return this.world.zone[clamp(Math.floor(p.cy() / TS), 0, HT - 1)][clamp(Math.floor(p.cx() / TS), 0, WT - 1)];
+  }
+  active_bosses() { return this.bosses.filter(b => b.state === 'intro' || b.state === 'fight' || b.state === 'dying'); }
+  clear_hostile() { this.projs = this.projs.filter(q => q.friendly); }
+  on_heal() { this.flash_screen([150, 255, 200], 50); }
+  on_boss_dying(b) {
+    this.clear_hostile();
+    this.hitstop = 10;
+    this.shake(16);
+    this.flash_screen([255, 255, 255], 140);
+  }
+  on_boss_dead(b) {
+    const s = this, i = s.bosses.indexOf(b);
+    s.defeated[i] = true;
+    s.set_gates(b.arena, false);
+    s.projs = [];
+    s.banner(i < 3 ? b.name + " FELLED" : "THE VEIL LIFTS", i < 3 ? b.title : "Thank you for playing GLOAMVEIL", 6.0);
+    const r = REWARDS[i];
+    if (r) s.pickups.push(new Pickup(r, b.arena.rect.centerx, b.arena.floor - 44));
+    if (i === 3) s.won = true;
+    s.save();
+  }
+
+  // ---------------------------------------------------------------- input
+  read_input() {
+    const k = this.keys, P = this.pressed, i = new Inp();
+    i.l = k.has('KeyA') || k.has('ArrowLeft'); i.r = k.has('KeyD') || k.has('ArrowRight');
+    i.u = k.has('KeyW') || k.has('ArrowUp'); i.d = k.has('KeyS') || k.has('ArrowDown');
+    i.jh = k.has('Space') || k.has('KeyZ'); i.heal = k.has('KeyQ') || k.has('KeyL');
+    i.jump = P.has('jump'); i.dash = P.has('dash'); i.atk = P.has('atk'); i.spell = P.has('spell');
+    return i;
+  }
+
+  // ---------------------------------------------------------------- per-frame logic
+  step() {
+    const s = this, st = s.state, P = s.pressed;
+    if (st === 'title') {
+      s.tick += 1;
+      if (P.has('enter')) s.new_game();
+      else if (P.has('c') && s.has_save) s.load();
+    } else if (st === 'play') {
+      if (P.has('pause')) s.state = 'pause';
+      else if (P.has('map') && !s.dialog) s.open_map();
+      else s.update();
+    } else if (st === 'pause') {
+      if (P.has('pause')) s.state = 'play';
+    } else if (st === 'map') {
+      if (P.has('map') || P.has('pause')) s.state = 'play';
+    }
+  }
+  open_map() {
+    const s = this;
+    s.state = 'map';
+    const c = mkCanvas(WT * 2, HT * 2), sf = c.getContext('2d');
+    dRect(sf, [6, 6, 12], 0, 0, WT * 2, HT * 2);
+    const w = s.world;
+    for (const key of s.seen) {
+      const [cx, cy] = key.split(',').map(Number);
+      for (let ty = cy * 8; ty < Math.min(HT, cy * 8 + 8); ty++)
+        for (let tx = cx * 8; tx < Math.min(WT, cx * 8 + 8); tx++) {
+          if (tx < 0 || ty < 0) continue;
+          const t = w.g[ty][tx];
+          let col;
+          if (t === 0) col = shade(ZONES[w.zone[ty][tx]].sky[0], 1.4);
+          else if (t === 2) col = [200, 60, 70];
+          else col = shade(ZONES[w.zone[ty][tx]].top, 0.8);
+          dRect(sf, col, tx * 2, ty * 2, 2, 2);
+        }
+    }
+    s.map_surf = c;
+  }
+  update() {
+    const s = this, p = s.player;
+    s.tick += 1;
+    const inp = s.read_input();
+    if (s.shk > 0.3) s.shk *= 0.86; else s.shk = 0.0;
+    if (s.bn) { s.bn[2] -= DT; if (s.bn[2] <= 0) s.bn = null; }
+    for (const t of s.toasts) t[1] -= DT;
+    s.toasts = s.toasts.filter(t => t[1] > 0);
+    if (s.flash[1] > 0) s.flash[1] = Math.max(0, s.flash[1] - 6);
+    if (s.fade > 0) s.fade -= 1;
+    if (s.tick % 12 === 0) {
+      const cx = Math.floor(Math.floor(p.cx() / TS) / 8), cy = Math.floor(Math.floor(p.cy() / TS) / 8);
+      for (let dx = -3; dx < 4; dx++) for (let dy = -2; dy < 3; dy++) s.seen.add((cx + dx) + ',' + (cy + dy));
+    }
+    const z = s.zone_of_player();
+    if (z !== s.zone_cur) {
+      s.zone_prev = s.zone_cur; s.zone_cur = z; s.zone_fade = 0.0;
+      s.banner(ZONES[z].name, ZONES[z].sub);
+    }
+    s.zone_fade = Math.min(1.0, s.zone_fade + 0.02);
+    if (s.dialog) {
+      const d = s.dialog, P = s.pressed;
+      if (P.has('use') || P.has('jump') || P.has('atk')) {
+        d.i += 1;
+        if (d.i >= d.pages.length) s.finish_dialog();
+      }
+      s.parts.update(); s.update_camera();
+      return;
+    }
+    if (s.hitstop > 0) { s.hitstop -= 1; return; }
+    if (s.bosses.some(b => b.state === 'dying') && s.tick % 2) return;
+    if (p.dead) {
+      s.death_t += 1;
+      p.update(inp);
+      s.parts.update();
+      if (s.death_t === 1) s.shake(10);
+      if (s.death_t > 150) s.respawn();
+      return;
+    }
+    p.update(inp);
+    s.projs.push(...p.spawn); p.spawn.length = 0;
+    if (p.hazard) {
+      p.hazard = false;
+      const hurt = p.hurt(1, p.cx(), false);
+      if (hurt) s.on_player_hurt();
+      if (!p.dead) {
+        p.x = p.safe[0]; p.y = p.safe[1];
+        p.vx = p.vy = 0.0;
+        p.inv = Math.max(p.inv, 1.25);
+      }
+    }
+    s.bosses.forEach((b, i) => {
+      if (b.state === 'dormant' && !s.defeated[i] && b.arena.triggered(p)) {
+        b.start();
+        s.set_gates(b.arena, true);
+        s.banner(b.name, b.title, 3.4);
+        s.shake(6);
+      }
+    });
+    for (const e of s.enemies) if (e.alive && Math.abs(e.x - p.x) < 900 && Math.abs(e.y - p.y) < 700) e.update(s);
+    for (const b of s.bosses) b.update();
+    for (const q of s.projs) q.update(s);
+    s.projs = s.projs.filter(q => !q.dead);
+    for (const pk of s.pickups) pk.t += DT;
+    s.combat();
+    s.interact();
+    s.parts.update();
+    s.update_camera();
+    if (rnd() < 0.3) s.ambient();
+  }
+  ambient() {
+    const s = this, z = ZONES[s.zone_cur];
+    s.parts.add(s.cam[0] + uniform(0, W), s.cam[1] + uniform(0, H), uniform(-8, 8),
+      s.zone_cur !== 4 ? uniform(-14, -4) : uniform(10, 30), 3.0, z.mote, 2, 0);
+  }
+  on_player_hurt() {
+    const s = this;
+    s.hitstop = 7;
+    s.shake(9);
+    s.flash_screen([255, 60, 60], 90);
+    s.parts.burst(s.player.cx(), s.player.cy(), 12, [240, 240, 255], 260, 0.4, 3);
+  }
+  combat() {
+    const s = this, p = s.player, pr = p.rect(), ar = p.attack_rect();
+    if (ar) {
+      let hit = false;
+      for (const e of s.enemies) {
+        if (e.alive && !p.hits.has(e) && ar.colliderect(e.rect())) { p.hits.add(e); e.hit(NAIL_DMG, e.cx() > p.cx() ? 1 : -1, s); hit = true; }
+      }
+      for (const b of s.bosses) {
+        if (b.state === 'fight' && !p.hits.has(b) && ar.colliderect(b.hurtbox())) {
+          if (b.damage(NAIL_DMG)) {
+            p.hits.add(b); hit = true;
+            p.pool = Math.min(POOL_MAX, p.pool + CHARGE_PER_HIT);
+            s.parts.burst(p.cx() + p.face * 30, p.cy(), 6, [150, 235, 255], 200, 0.4, 3, 0);
+          }
+        }
+      }
+      for (const q of s.projs) {
+        if (q.hp > 0 && !q.friendly && q.delay <= 0 && !p.hits.has(q) && ar.colliderect(q.rect())) { p.hits.add(q); q.pop(s); hit = true; }
+      }
+      if (p.adir === 'down' && s.world.spike_hit(ar.x, ar.y, ar.w, ar.h)) hit = true;
+      if (hit) {
+        s.hitstop = Math.max(s.hitstop, 3);
+        s.shake(3);
+        if (p.adir === 'down') { p.vy = -540; p.dj = true; p.dash_ok = true; p.rising = false; p.atk_t = 0.0; }
+      }
+    }
+    // soul lance
+    for (const q of s.projs) {
+      if (q.friendly && q.delay <= 0) {
+        const r = q.rect();
+        for (const e of s.enemies) {
+          if (e.alive && !q.hits.has(e) && r.colliderect(e.rect())) { q.hits.add(e); e.hit(SPELL_DMG, sign(q.vx), s); }
+        }
+        for (const b of s.bosses) {
+          if (b.state === 'fight' && !q.hits.has(b) && r.colliderect(b.hurtbox()) && b.damage(SPELL_DMG)) { q.hits.add(b); s.hitstop = 4; s.shake(6); }
+        }
+      }
+    }
+    if (p.dead) return;
+    for (const e of s.enemies) {
+      if (e.alive && pr.colliderect(e.rect().inflate(-6, -4)) && p.hurt(1, e.cx())) s.on_player_hurt();
+    }
+    for (const b of s.bosses) {
+      if (b.state !== 'fight') continue;
+      for (const [rect, dmg] of b.hb) {
+        if (rect.colliderect(pr) && p.hurt(dmg, rect.centerx)) s.on_player_hurt();
+      }
+      if (b.contact_on && b.rect().inflate(-18, -14).colliderect(pr) && p.hurt(b.contact, b.cx())) s.on_player_hurt();
+    }
+    for (const q of s.projs) {
+      if (!q.friendly && q.delay <= 0 && q.rect().colliderect(pr) && p.hurt(q.dmg, q.x)) {
+        s.on_player_hurt();
+        if (!q.pierce) q.dead = true;
+      }
+    }
+  }
+  interact() {
+    const s = this, p = s.player, pr = p.rect();
+    s.near = null;
+    s.shrine_pos.forEach(([sx, sy], i) => {
+      if (new Rect(sx - 44, sy - 100, 88, 100).colliderect(pr)) {
+        if (!s.lit.has(i)) {
+          s.lit.add(i); s.shrine = i;
+          s.toast("Lantern lit - respawn point set");
+          s.save();
+        }
+        s.near = ['shrine', i, sx, sy - 70];
+      }
+    });
+    for (const n of s.npcs) {
+      if (Math.abs(n.x - p.cx()) < 70 && Math.abs(n.y - p.y - p.h) < 60) s.near = ['npc', n, n.x, n.y - 92];
+    }
+    for (const pk of s.pickups.slice()) {
+      if (pk.rect().colliderect(pr)) {
+        s.abil[pk.kind] = true;
+        s.pickups.splice(s.pickups.indexOf(pk), 1);
+        const [nm, hint] = ABIL_INFO[pk.kind];
+        s.banner(nm, hint, 6.0);
+        s.flash_screen([255, 255, 255], 160);
+        s.parts.burst(pk.x, pk.y, 40, [255, 240, 180], 300, 0.9, 4, 0);
+        s.save();
+      }
+    }
+    if (s.pressed.has('use') && s.near && p.grounded) {
+      if (s.near[0] === 'shrine') {
+        s.shrine = s.near[1];
+        p.hp = MAX_HP;
+        s.enemies = s.world.spawns.map(sp => new Enemy(...sp));
+        s.projs = [];
+        s.toast("You rest at the lantern. Wounds mend; the wild stirs again.");
+        s.parts.burst(s.near[2], s.near[3], 24, [255, 210, 130], 200, 0.8, 3, -80);
+        s.save();
+      } else {
+        const n = s.near[1];
+        s.dialog = { npc: n, pages: NPC_TEXT[n.idx][s.defeated[n.idx] ? 'after' : 'before'], i: 0 };
+      }
+    }
+  }
+  finish_dialog() {
+    const s = this, n = s.dialog.npc, i = n.idx;
+    if (s.defeated[i]) {
+      if (s.quests[i] !== 'done') {
+        s.quests[i] = 'done';
+        s.player.pool = POOL_MAX;
+        s.toast("Quest complete: " + QUEST[i] + "  (spirit refilled)");
+        s.save();
+      }
+    } else if (s.quests[i] === 'none') {
+      s.quests[i] = 'active';
+      s.toast("Quest accepted: " + QUEST[i]);
+      s.save();
+    }
+    s.dialog = null;
+  }
+
+  // ---------------------------------------------------------------- camera
+  cur_arena() {
+    const p = this.player;
+    for (const a of this.world.arenas) if (a.view.collidepoint(p.cx(), p.cy())) return a;
+    return null;
+  }
+  cam_target() {
+    const p = this.player;
+    const tx = p.cx() - W / 2 + p.face * 40, ty = p.cy() - H * 0.56;
+    let b = [0, 0, WT * TS - W, HT * TS - H];
+    const a = this.cur_arena();
+    if (a) b = [a.view.left, a.view.top, a.view.right - W, a.view.bottom - H];
+    return [clamp(tx, b[0], Math.max(b[0], b[2])), clamp(ty, b[1], Math.max(b[1], b[3]))];
+  }
+  update_camera() {
+    const [tx, ty] = this.cam_target();
+    this.cam[0] += (tx - this.cam[0]) * 0.12;
+    this.cam[1] += (ty - this.cam[1]) * 0.12;
+  }
+  snap_camera() { const [x, y] = this.cam_target(); this.cam[0] = x; this.cam[1] = y; }
+
+  // ---------------------------------------------------------------- drawing helpers
+  text(txt, font, col, x, y, center = false, shadow = true) {
+    scr.font = font; scr.textBaseline = 'top'; scr.textAlign = center ? 'center' : 'left';
+    if (shadow) { scr.fillStyle = 'rgb(10,8,16)'; scr.fillText(txt, x + 2, y + 2); }
+    scr.fillStyle = css(col); scr.fillText(txt, x, y);
+    scr.textAlign = 'left';
+  }
+  tw(font, txt) { scr.font = font; return scr.measureText(txt).width; }
+  glow(r, col) {
+    const k = r + ',' + col.join(',');
+    if (!this.glows[k]) {
+      const c = mkCanvas(r * 2, r * 2), x = c.getContext('2d');
+      dRect(x, [0, 0, 0], 0, 0, r * 2, r * 2);
+      for (let i = r; i > 0; i -= 3) {
+        const f = Math.pow(1 - i / r, 1.6);
+        dCirc(x, col.map(v => Math.trunc(v * f)), r, r, i);
+      }
+      this.glows[k] = c;
+    }
+    return this.glows[k];
+  }
+  add_glow(x, y, r, col) {
+    scr.globalCompositeOperation = 'lighter';
+    scr.drawImage(this.glow(r, col), Math.trunc(x - r), Math.trunc(y - r));
+    scr.globalCompositeOperation = 'source-over';
+  }
+  overlay(col, a) {
+    scr.globalAlpha = clamp(a, 0, 255) / 255;
+    dRect(scr, col, 0, 0, W, H);
+    scr.globalAlpha = 1;
+  }
+
+  // ---------------------------------------------------------------- background
+  draw_bg(cam, zi, prev = null, fade = 1.0) {
+    const s = this;
+    if (prev !== null && prev !== zi && fade < 1.0) {
+      scr.drawImage(s.skies[prev], 0, 0);
+      scr.globalAlpha = fade;
+      scr.drawImage(s.skies[zi], 0, 0);
+      scr.globalAlpha = 1;
+    } else scr.drawImage(s.skies[zi], 0, 0);
+    const z = ZONES[zi], t = s.tick / 60;
+    if (zi === 0) {
+      dCirc(scr, [255, 232, 196], Math.trunc(W * 0.78 - cam[0] * 0.02), 120, 46);
+      dCirc(scr, [252, 196, 150], Math.trunc(W * 0.78 - cam[0] * 0.02), 120, 60, 3);
+    }
+    if (zi === 4) {
+      const x = Math.trunc(W * 0.68 - cam[0] * 0.04);
+      dCirc(scr, [240, 150, 220], x, 170, 118, 3);
+      dCirc(scr, [10, 4, 14], x, 170, 104);
+      dCirc(scr, [250, 190, 235], x, 170, 104, 4);
+    }
+    [[0.16, z.far, 230], [0.36, z.near, 150]].forEach(([fac, col, sp], layer) => {
+      const off = cam[0] * fac;
+      const by = Math.trunc(clamp(470 + (976 - cam[1]) * fac * 0.5, 320, 580));
+      const i0 = Math.floor(off / sp) - 1;
+      const n = Math.floor(W / sp) + 3;
+      for (let i = i0; i < i0 + n; i++) {
+        const rng = new RNG(i * 131 + zi * 7 + layer * 1000 + 100000);
+        const x = i * sp - off + rng.uniform(-30, 30);
+        const hh = rng.uniform(90, 250) * (0.8 + layer * 0.3);
+        if (zi === 0 && layer === 0) {
+          dPoly(scr, col, [[x - sp, by], [x + 10, by - hh], [x + sp * 0.9, by]]);
+        } else if (zi === 0 || zi === 1) {
+          dRect(scr, col, x - 5, by - hh * 0.4, 10, hh * 0.4);
+          for (let k = 0; k < 3; k++) {
+            const wd = 44 - k * 11;
+            dPoly(scr, col, [[x - wd, by - hh * 0.3 - k * hh * 0.22], [x, by - hh * 0.62 - k * hh * 0.22], [x + wd, by - hh * 0.3 - k * hh * 0.22]]);
+          }
+        } else if (zi === 2) {
+          for (let k = 0; k < 3; k++) {
+            const dx = (k - 1) * 22;
+            dPoly(scr, col, [[x + dx - 14, by], [x + dx - 3, by - hh * (0.7 + 0.2 * k % 2) - k * 14], [x + dx + 3, by - hh * 0.5], [x + dx + 16, by]]);
+          }
+        } else if (zi === 3) {
+          const cut = rng.uniform(0.5, 1.0);
+          dPoly(scr, col, [[x - 20, by], [x - 20, by - hh], [x + 8, by - hh * cut], [x + 20, by - hh * 0.9], [x + 20, by]]);
+          dRect(scr, col, x - 28, by - hh - 6, 56, 10);
+        } else {
+          dPoly(scr, col, [[x - 22, by], [x - 6, by - hh * 1.3], [x + 2, by - hh * 0.9], [x + 24, by]]);
+        }
+      }
+      dRect(scr, col, 0, by, W, H - by);
+    });
+    for (const m of s.motes) {
+      const mx = pymod(m[0] - cam[0] * 0.3 + Math.sin(t + m[3]) * 12, W);
+      const my = pymod(m[1] - (t * m[2]) - cam[1] * 0.2, H);
+      if (zi === 3) dCirc(scr, z.mote, Math.trunc(mx), Math.trunc(my), 2 + Math.trunc(m[3]) % 3, 1);
+      else dRect(scr, z.mote, Math.trunc(mx), Math.trunc(my), 2, 2);
+    }
+  }
+
+  // ---------------------------------------------------------------- tiles & decor
+  draw_tiles(cam) {
+    const w = this.world, T = this.tiles;
+    const x0 = Math.max(0, Math.floor(cam[0] / TS)), x1 = Math.min(WT, Math.floor((cam[0] + W) / TS) + 2);
+    const y0 = Math.max(0, Math.floor(cam[1] / TS)), y1 = Math.min(HT, Math.floor((cam[1] + H) / TS) + 2);
+    for (let ty = y0; ty < y1; ty++) {
+      const row = w.g[ty], zr = w.zone[ty], kr = w.kind[ty];
+      for (let tx = x0; tx < x1; tx++) {
+        const t = row[tx];
+        if (!t) continue;
+        const px = tx * TS - cam[0], py = ty * TS - cam[1];
+        if (t === 1) scr.drawImage(T.t[zr[tx]][kr[tx]][(tx * 7 + ty * 13) % 3], px, py);
+        else if (t === 2) scr.drawImage(T.spk[zr[tx]], px, py);
+        else scr.drawImage(T.gate, px, py);
+      }
+    }
+  }
+  draw_decor(cam) {
+    const s = this, w = s.world;
+    const lb = (arr, v) => { let lo = 0, hi = arr.length; while (lo < hi) { const m = (lo + hi) >> 1; if (arr[m] < v) lo = m + 1; else hi = m; } return lo; };
+    const ub = (arr, v) => { let lo = 0, hi = arr.length; while (lo < hi) { const m = (lo + hi) >> 1; if (arr[m] <= v) lo = m + 1; else hi = m; } return lo; };
+    const i0 = lb(w.decor_x, cam[0] - 200), i1 = ub(w.decor_x, cam[0] + W + 200);
+    const t = s.tick / 60;
+    for (let n = i0; n < i1; n++) {
+      const [px, kind, yy, seed] = w.decor[n];
+      const x = px - cam[0], y = yy - cam[1];
+      if (y < -200 || y > H + 300) continue;
+      const sw = Math.sin(t * 1.5 + seed) * 3;
+      if (kind === 'tree') {
+        const hh = 90 + seed % 70;
+        dRect(scr, [28, 24, 24], x - 6, y - hh, 12, hh);
+        for (let k = 0; k < 3; k++) {
+          const wd = 38 - k * 9;
+          dPoly(scr, [24 + k * 6, 56 + k * 10, 40], [[x - wd + sw * k * .3, y - hh * .35 - k * 30], [x + sw, y - hh * .35 - k * 30 - 58], [x + wd + sw * k * .3, y - hh * .35 - k * 30]]);
+        }
+      } else if (kind === 'bush') {
+        for (const [dx, rr] of [[-10, 9], [0, 13], [11, 9]]) dCirc(scr, [40, 84, 52], x + dx + sw * .3, y - rr, rr);
+      } else if (kind === 'mush') {
+        dRect(scr, [210, 220, 190], x - 2, y - 12, 4, 12);
+        dEll(scr, [160, 255, 150], x, y - 15, 9, 6);
+        s.add_glow(x, y - 14, 22, [30, 60, 30]);
+      } else if (kind === 'cryst') {
+        for (const [dx, hh] of [[-12, 26], [0, 44 + seed % 18], [12, 30]]) {
+          dPoly(scr, [116, 88, 210], [[x + dx - 7, y], [x + dx - 2, y - hh], [x + dx + 3, y - hh + 5], [x + dx + 8, y]]);
+          dPoly(scr, [210, 232, 255], [[x + dx - 2, y], [x + dx - 2, y - hh], [x + dx + 3, y - hh + 5]]);
+        }
+        s.add_glow(x, y - 22, 40, [34, 30, 66]);
+      } else if (kind === 'stal') {
+        const hh = 20 + seed % 40;
+        dPoly(scr, shade(ZONES[s.zone_cur].rock, 1.15), [[x - 9, y - 1], [x + 1, y + hh], [x + 9, y - 1]]);
+      } else if (kind === 'vine') {
+        const hh = 30 + seed % 60;
+        dLines(scr, [46, 92, 52], range(6).map(k => [x + Math.sin(t + k * .6 + seed) * 3 * k / 4, y + k * hh / 5]), 3);
+      } else if (kind === 'coral') {
+        for (const [dx, hh, c] of [[-8, 26, [255, 120, 140]], [0, 40, [255, 150, 160]], [9, 22, [230, 110, 170]]]) {
+          dLines(scr, c, [[x + dx, y], [x + dx + sw * .5, y - hh * .5], [x + dx + 6 + sw, y - hh]], 4);
+          dCirc(scr, c, x + dx + 6 + sw, y - hh, 4);
+        }
+      } else if (kind === 'reed') {
+        for (const dx of [-6, 0, 6]) dLines(scr, [60, 150, 130], [[x + dx, y], [x + dx + sw, y - 24], [x + dx + sw * 2, y - 46 - dx]], 2);
+      } else if (kind === 'pillar') {
+        const hh = 70 + seed % 80;
+        dRect(scr, [60, 44, 70], x - 14, y - hh, 28, hh);
+        dPoly(scr, [60, 44, 70], [[x - 14, y - hh], [x + 14, y - hh], [x + 6, y - hh - 14], [x - 4, y - hh - 8]]);
+        dRect(scr, [200, 150, 110], x - 15, y - hh * 0.4, 30, 5);
+      } else if (kind === 'tuft') {
+        for (const dx of [-6, 0, 6]) dPoly(scr, [170, 70, 130], [[x + dx - 3, y], [x + dx + sw * .4, y - 14 - Math.abs(dx)], [x + dx + 3, y]]);
+      } else if (kind === 'house') {
+        const bw = 96 + (seed % 3) * 14, bh = 64;
+        const hx = Math.floor(bw / 2), qx = Math.floor(bw / 4);
+        dRect(scr, [46, 40, 62], x - hx, y - bh, bw, bh);
+        dPoly(scr, [74, 46, 64], [[x - hx - 10, y - bh], [x, y - bh - 44], [x + hx + 10, y - bh]]);
+        dRect(scr, [60, 50, 70], x + qx, y - bh - 40, 10, 24);
+        dRect(scr, [255, 206, 120], x - qx - 8, y - bh + 14, 16, 16);
+        dRect(scr, [30, 24, 36], x + 6, y - 32, 18, 32);
+        s.add_glow(x - qx, y - bh + 22, 44, [90, 60, 24]);
+      }
+    }
+  }
+  draw_shrine(cam, i, x, y) {
+    const s = this;
+    const X = x - cam[0], Y = y - cam[1];
+    const lit = s.lit.has(i), active = i === s.shrine;
+    const t = s.tick / 60;
+    dRect(scr, [70, 66, 86], X - 17, Y - 8, 34, 8);
+    dRect(scr, [92, 88, 110], X - 17, Y - 8, 34, 2);
+    dRect(scr, [70, 66, 86], X - 4, Y - 62, 8, 56);
+    dRect(scr, [70, 66, 86], X - 4, Y - 64, 24, 5);
+    dLine(scr, [140, 130, 100], [X + 14, Y - 59], [X + 14, Y - 54], 2);
+    dRect(scr, [30, 28, 40], X + 8, Y - 56, 13, 20);
+    if (lit) {
+      const fl = 6 + Math.trunc(2 * Math.sin(t * 11 + i));
+      dPoly(scr, [255, 150, 60], [[X + 11, Y - 38], [X + 14, Y - 38 - fl - 8], [X + 18, Y - 38]]);
+      dPoly(scr, [255, 232, 160], [[X + 12, Y - 38], [X + 14, Y - 38 - fl], [X + 16, Y - 38]]);
+      s.add_glow(X + 14, Y - 44, active ? 90 : 54, active ? [130, 84, 34] : [70, 46, 22]);
+    } else dCirc(scr, [110, 140, 190], X + 14, Y - 41, 3);
+  }
+  prompt(txt, x, y) {
+    const w = this.tw(F_S, txt);
+    const rx = Math.trunc(x - w / 2 - 8), ry = Math.trunc(y - 12), rw = Math.trunc(w) + 16;
+    dRRect(scr, [20, 16, 30], rx, ry, rw, 24, 6);
+    dRRect(scr, [200, 170, 110], rx, ry, rw, 24, 6, 1);
+    scr.font = F_S; scr.textBaseline = 'top'; scr.textAlign = 'left';
+    scr.fillStyle = css([250, 240, 220]); scr.fillText(txt, rx + 8, ry + 5);
+  }
+  draw_pickup(cam, pk) {
+    const s = this;
+    const x = Math.trunc(pk.x - cam[0]), y = Math.trunc(pk.y - cam[1] + Math.sin(pk.t * 3) * 6);
+    s.add_glow(x, y, 80, [120, 90, 40]);
+    dCirc(scr, [255, 236, 170], x, y, 17);
+    dCirc(scr, [255, 255, 255], x, y, 17, 2);
+    dCirc(scr, [200, 130, 60], x, y, 23, 2);
+    const ic = [90, 60, 120];
+    if (pk.kind === 'dash') dPoly(scr, ic, [[x - 9, y - 6], [x + 3, y - 6], [x + 3, y - 11], [x + 12, y], [x + 3, y + 11], [x + 3, y + 6], [x - 9, y + 6]]);
+    else if (pk.kind === 'dj') dPoly(scr, ic, [[x - 8, y + 10], [x + 8, y - 11], [x + 3, y + 2], [x + 10, y + 3], [x - 2, y + 12]]);
+    else for (const dx of [-7, 0, 7]) dPoly(scr, ic, [[x + dx - 3, y + 10], [x + dx, y - 10], [x + dx + 3, y + 10]]);
+  }
+
+  // ---------------------------------------------------------------- HUD
+  heart(x, y, full) {
+    const pts = HEART.map(([px, py]) => [x + px * 0.72, y + py * 0.72]);
+    dPoly(scr, [30, 8, 16], pts.map(([a, b]) => [a + (a - x) * 0.18, b + (b - y) * 0.18]));
+    dPoly(scr, full ? [226, 52, 76] : [62, 34, 48], pts);
+    if (full) dCirc(scr, [255, 170, 180], Math.trunc(x - 4), Math.trunc(y - 4), 2);
+  }
+  draw_hud() {
+    const s = this, p = s.player;
+    for (let k = 0; k < MAX_HP; k++) s.heart(30 + k * 27, 30, k < p.hp);
+    for (let sg = 0; sg < 3; sg++) {
+      const fr = clamp((p.pool - sg * 33) / 33, 0, 1);
+      const rx = 18 + sg * 66, ry = 54;
+      dRRect(scr, [12, 14, 30], rx, ry, 60, 13, 4);
+      if (fr > 0) dRRect(scr, fr < 1 ? [110, 220, 255] : [190, 250, 255], rx + 2, ry + 2, Math.trunc(56 * fr), 9, 3);
+      dRRect(scr, fr < 1 ? [150, 190, 220] : [255, 255, 255], rx, ry, 60, 13, 4, 2);
+    }
+    s.text("Lance [K / RMB]    Mend [hold Q]", F_S, [190, 200, 220], 18, 72);
+    const act = s.quests.map((q, i) => [i, q]).filter(([i, q]) => q === 'active' && !s.defeated[i]);
+    const bosses = s.active_bosses();
+    if (act.length && !bosses.length) {
+      const txt = "Quest: " + QUEST[act[0][0]];
+      s.text(txt, F_S, [250, 226, 160], W - 20 - s.tw(F_S, txt), 18);
+    }
+    for (const b of bosses) {
+      const bw = 460, x = W / 2 - bw / 2 + 90, y = 44;
+      s.text(b.name + "  -  " + b.title, F_N, [240, 226, 200], x + bw / 2, y - 30, true);
+      dRRect(scr, [14, 8, 18], x - 4, y - 4, bw + 8, 22, 3);
+      dRect(scr, !b.enraged ? [210, 70, 70] : [255, 130, 60], x, y, Math.trunc(bw * b.hp / b.max_hp), 14);
+      dRRect(scr, [210, 180, 130], x - 4, y - 4, bw + 8, 22, 3, 2);
+      for (const e of [x - 8, x + bw + 8]) dPoly(scr, [210, 180, 130], [[e - 6, y + 7], [e, y], [e + 6, y + 7], [e, y + 14]]);
+    }
+    s.toasts.slice(-3).forEach(([txt], n) => s.text(txt, F_N, [255, 240, 210], 20, H - 120 - n * 26));
+    if (s.bn) {
+      const a = Math.min(1.0, s.bn[2] / 0.6, (s.bn[3] - s.bn[2]) / 0.4);
+      const col = lerpc([0, 0, 0], [250, 236, 210], clamp(a, 0, 1));
+      s.text(s.bn[0], s.bn[0].length < 22 ? F_B : F_M, col, W / 2, 120, true);
+      s.text(s.bn[1], F_N, lerpc([0, 0, 0], [200, 190, 170], clamp(a, 0, 1)), W / 2, 176, true);
+    }
+  }
+  draw_dialog() {
+    const s = this, d = s.dialog;
+    const rx = 90, ry = H - 190, rw = W - 180;
+    dRRect(scr, [16, 12, 26], rx, ry, rw, 150, 8);
+    dRRect(scr, [200, 170, 110], rx, ry, rw, 150, 8, 2);
+    s.text(d.npc.name, F_M, [250, 214, 140], rx + 20, ry + 12);
+    let line = '', y = ry + 58;
+    for (const wd of d.pages[d.i].split(' ')) {
+      if (s.tw(F_N, line + wd) > rw - 40) { s.text(line, F_N, [240, 236, 230], rx + 20, y); y += 28; line = ''; }
+      line += wd + ' ';
+    }
+    s.text(line, F_N, [240, 236, 230], rx + 20, y);
+    s.text("[E]", F_S, [200, 170, 110], rx + rw - 50, ry + 150 - 26);
+  }
+  draw_map() {
+    const s = this;
+    dRect(scr, [8, 8, 14], 0, 0, W, H);
+    const ox = Math.floor((W - WT * 2) / 2), oy = 150;
+    s.text("MAP", F_M, [240, 226, 200], W / 2, 40, true);
+    scr.drawImage(s.map_surf, ox, oy);
+    s.shrine_pos.forEach(([x, y], i) => {
+      if (s.lit.has(i)) dCirc(scr, [255, 200, 110], ox + Math.trunc(x / TS * 2), oy + Math.trunc(y / TS * 2) - 2, 4);
+    });
+    s.world.arenas.forEach((a, i) => {
+      if (!s.defeated[i] && s.seen.has(Math.floor(a.x0 / 8) + ',' + (Math.floor(a.fy / 8) - 1))) {
+        const cx = ox + (a.x0 + 15) * 2, cy = oy + (a.fy - 8) * 2;
+        dLine(scr, [255, 80, 80], [cx - 5, cy - 5], [cx + 5, cy + 5], 3);
+        dLine(scr, [255, 80, 80], [cx - 5, cy + 5], [cx + 5, cy - 5], 3);
+      }
+    });
+    const p = s.player;
+    if (Math.floor(s.tick / 15) % 2) dCirc(scr, [255, 255, 255], ox + Math.trunc(p.cx() / TS * 2), oy + Math.trunc(p.cy() / TS * 2), 4);
+    s.text("gold = lantern     red X = unslain boss     M / ESC to close", F_S, [180, 180, 200], W / 2, H - 60, true);
+  }
+  draw_pause() {
+    const s = this;
+    s.overlay([6, 4, 12], 190);
+    s.text("PAUSED", F_B, [240, 226, 200], W / 2, 50, true);
+    const rows = ["Move  A / D  or  arrows        Aim  W / S  (up-slash, down-slash = pogo)",
+      "Jump  SPACE (hold = higher)    Dash  X / SHIFT    Wall-jump  SPACE on a wall",
+      "Attack  Left Mouse / J         Soul Lance  Right Mouse / K  (costs 33)",
+      "Mend  hold Q / L (costs 33, heals 3)    Talk / rest  E    Map  M"];
+    rows.forEach((r, n) => s.text(r, F_N, [230, 224, 214], W / 2, 150 + n * 34, true));
+    s.text("Hit bosses with your nail to charge your spirit - Lance and Mend share the same 3 charges.", F_S, [150, 220, 250], W / 2, 300, true);
+    const have = ['dash', 'dj', 'wall'].filter(k => s.abil[k]).map(k => ABIL_INFO[k][0]);
+    s.text("Abilities: " + (have.length ? have.join(", ") : "none yet"), F_N, [250, 220, 150], W / 2, 350, true);
+    QUEST.forEach((q, i) => {
+      const st = s.quests[i] === 'done' ? 'DONE' : (s.defeated[i] && s.quests[i] === 'active' ? 'slain - report back' : (s.quests[i] === 'active' ? 'active' : '-'));
+      s.text(q + "  [" + st + "]", F_S, [210, 200, 190], W / 2, 395 + i * 24, true);
+    });
+    s.text("ESC to resume", F_S, [160, 160, 180], W / 2, H - 40, true);
+  }
+  draw_title() {
+    const s = this;
+    const cam = [s.tick * 0.8, 976];
+    s.draw_bg(cam, 0);
+    dRect(scr, [24, 22, 40], 0, 440, W, 100);
+    dRect(scr, [98, 134, 70], 0, 440, W, 8);
+    s.text("GLOAMVEIL", F_B, [252, 232, 196], W / 2, 110, true);
+    s.text("a tale of lanterns and thorns", F_M, [214, 190, 170], W / 2, 190, true);
+    s.text("ENTER  -  New Game" + (s.has_save ? "  (replaces your save)" : ""), F_M, [250, 240, 220], W / 2, 290, true);
+    if (s.has_save) s.text("C  -  Continue", F_M, [250, 240, 220], W / 2, 332, true);
+    s.text("A/D move   SPACE jump   LMB attack   RMB lance   hold Q mend   E interact   ESC pause", F_S, [200, 196, 210], W / 2, 480, true);
+  }
+
+  // ---------------------------------------------------------------- render
+  render() {
+    const s = this;
+    if (s.state === 'title') { s.draw_title(); return; }
+    if (s.state === 'map') { s.draw_map(); return; }
+    const p = s.player;
+    const ox = s.shk ? uniform(-1, 1) * s.shk : 0, oy = s.shk ? uniform(-1, 1) * s.shk : 0;
+    const cam = [Math.trunc(s.cam[0] + ox), Math.trunc(s.cam[1] + oy)];
+    s.draw_bg(cam, s.zone_cur, s.zone_prev, s.zone_fade);
+    s.draw_decor(cam);
+    s.draw_tiles(cam);
+    const t = s.tick / 60;
+    s.shrine_pos.forEach(([x, y], i) => { if (cam[0] - 100 < x && x < cam[0] + W + 100) s.draw_shrine(cam, i, x, y); });
+    for (const n of s.npcs) if (cam[0] - 100 < n.x && n.x < cam[0] + W + 100) n.draw(scr, cam, t, p.cx());
+    for (const pk of s.pickups) s.draw_pickup(cam, pk);
+    for (const e of s.enemies)
+      if (e.alive && cam[0] - 80 < e.x && e.x < cam[0] + W + 80 && cam[1] - 80 < e.y && e.y < cam[1] + H + 80) e.draw(scr, cam);
+    for (const b of s.bosses)
+      if (cam[0] - 300 < b.cx() && b.cx() < cam[0] + W + 300 && cam[1] - 300 < b.cy() && b.cy() < cam[1] + H + 300) b.draw(scr, cam);
+    p.draw(scr, cam);
+    for (const q of s.projs) q.draw(scr, cam);
+    s.parts.draw(scr, cam);
+    if (s.near && !s.dialog && !p.dead) s.prompt(s.near[0] === 'shrine' ? "E  Rest" : "E  Talk", s.near[2] - cam[0], s.near[3] - cam[1]);
+    scr.drawImage(s.vig, 0, 0);
+    if (s.flash[1] > 0) s.overlay(s.flash[0], s.flash[1]);
+    s.draw_hud();
+    if (s.dialog) s.draw_dialog();
+    if (p.dead && s.death_t > 40) {
+      const a = clamp((s.death_t - 40) * 4, 0, 255);
+      s.overlay([0, 0, 0], s.death_t < 135 ? a : 255);
+      s.text("THE LANTERN CALLS YOU BACK", F_M, [220, 200, 190], W / 2, H / 2 - 14, true);
+    } else if (s.fade > 0) s.overlay([0, 0, 0], s.fade * 255 / 40);
+    if (s.state === 'pause') s.draw_pause();
+  }
+}
+
+// ------------------------------------------------------------------ input wiring & main loop
+const g = new Game();
+
+const BLOCK = new Set(['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Tab']);
+window.addEventListener('keydown', e => {
+  if (BLOCK.has(e.code)) e.preventDefault();
+  g.keys.add(e.code);
+  if (e.repeat) return;
+  const k = e.code, P = g.pressed;
+  if (k === 'Space' || k === 'KeyZ') P.add('jump');
+  if (k === 'KeyX' || k === 'ShiftLeft' || k === 'ShiftRight') P.add('dash');
+  if (k === 'KeyJ') P.add('atk');
+  if (k === 'KeyK') P.add('spell');
+  if (k === 'KeyE' || k === 'Enter' || k === 'NumpadEnter') P.add('use');
+  if (k === 'Enter' || k === 'NumpadEnter') P.add('enter');
+  if (k === 'KeyM') P.add('map');
+  if (k === 'Escape' || k === 'KeyP') P.add('pause');
+  if (k === 'KeyC') P.add('c');
+});
+window.addEventListener('keyup', e => g.keys.delete(e.code));
+window.addEventListener('blur', () => g.keys.clear());
+cv.addEventListener('mousedown', e => {
+  cv.focus();
+  if (e.button === 0) g.pressed.add('atk');
+  else if (e.button === 2) g.pressed.add('spell');
+  e.preventDefault();
+});
+cv.addEventListener('contextmenu', e => e.preventDefault());
+cv.focus();
+
+let last = performance.now(), acc = 0;
+function frame(now) {
+  acc += Math.min(0.25, (now - last) / 1000);
+  last = now;
+  let steps = 0;
+  while (acc >= DT && steps < 5) {
+    g.step();
+    g.pressed.clear();
+    acc -= DT; steps++;
+  }
+  if (steps === 5) acc = 0;
+  g.render();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
 </body>
 </html>

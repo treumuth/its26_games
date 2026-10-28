@@ -1,42 +1,85 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="et">
 <head>
   <meta charset="UTF-8">
-  <title>Tähtede Püüdmine - Erinevad Tähed</title>
+  <title>Tähtede Püüdmine - Alan Walker Faded Edition</title>
   <style>
     body {
       margin: 0;
-      background: #1a1a24;
+      background: #090a10;
       color: #fff;
-      font-family: sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
+      user-select: none;
     }
     #ui {
-      font-size: 20px;
-      margin-bottom: 10px;
+      font-size: 18px;
+      margin-bottom: 12px;
       display: flex;
       gap: 25px;
+      background: #141624;
+      padding: 10px 22px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+      border: 1px solid #2a2e50;
+      align-items: center;
+    }
+    .stat-val {
+      font-weight: bold;
+      color: #00e676;
+    }
+    #combo-val {
+      color: #ffea00;
+    }
+    #mute-btn {
+      background: #2a2e50;
+      color: #fff;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    #mute-btn:hover {
+      background: #3d4375;
     }
     canvas {
-      border: 3px solid #4e54c8;
-      border-radius: 8px;
-      background: #0f0f17;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      border: 3px solid #3d4375;
+      border-radius: 12px;
+      background: #08090f;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.8);
+    }
+    .hud-buffs {
+      margin-top: 10px;
+      display: flex;
+      gap: 15px;
+      min-height: 24px;
+    }
+    .buff-tag {
+      font-size: 13px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
     }
   </style>
 </head>
 <body>
 
 <div id="ui">
-  <div>Skoor: <span id="score">0</span></div>
-  <div>Rekord: <span id="highscore">0</span></div>
-  <div>Tase: <span id="level">1</span></div>
+  <div>Skoor: <span id="score" class="stat-val">0</span></div>
+  <div>Rekord: <span id="highscore" class="stat-val">0</span></div>
+  <div>Tase: <span id="level" class="stat-val">1</span></div>
+  <div>Kombo: <span id="combo-val" class="stat-val">x1</span></div>
+  <button id="mute-btn">🔊 Heli: SEES (M)</button>
 </div>
-<canvas id="gameCanvas" width="600" height="400"></canvas>
+
+<canvas id="gameCanvas" width="650" height="420"></canvas>
+<div class="hud-buffs" id="buffs-container"></div>
 
 <script>
   const canvas = document.getElementById('gameCanvas');
@@ -44,45 +87,245 @@
   const scoreEl = document.getElementById('score');
   const highscoreEl = document.getElementById('highscore');
   const levelEl = document.getElementById('level');
+  const comboEl = document.getElementById('combo-val');
+  const buffsContainer = document.getElementById('buffs-container');
+  const muteBtn = document.getElementById('mute-btn');
 
   let gameState = 'MENU';
   let score = 0;
   let level = 1;
+  let nextLevelScore = 150;
+  let soundEnabled = true;
 
   let highScore = localStorage.getItem('highScore') ? parseInt(localStorage.getItem('highScore')) : 0;
   highscoreEl.innerText = highScore;
 
-  // 1. Mängija
+  // Web Audio API
+  let audioCtx = null;
+  function initAudio() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  }
+
+  function playSound(type) {
+    if (!soundEnabled || !audioCtx) return;
+
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    if (type === 'star') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, now);
+      osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.08);
+      gain.gain.setValueAtTime(0.05, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.start(now);
+      osc.stop(now + 0.08);
+    } else if (type === 'buff') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(370, now);
+      osc.frequency.linearRampToValueAtTime(740, now + 0.15);
+      gain.gain.setValueAtTime(0.06, now);
+      gain.gain.linearRampToValueAtTime(0.001, now + 0.15);
+      osc.start(now);
+      osc.stop(now + 0.15);
+    } else if (type === 'explode') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(130, now);
+      osc.frequency.exponentialRampToValueAtTime(30, now + 0.2);
+      gain.gain.setValueAtTime(0.07, now);
+      gain.gain.linearRampToValueAtTime(0.001, now + 0.2);
+      osc.start(now);
+      osc.stop(now + 0.2);
+    } else if (type === 'nuke') {
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(160, now);
+      osc.frequency.exponentialRampToValueAtTime(30, now + 0.35);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.linearRampToValueAtTime(0.001, now + 0.35);
+      osc.start(now);
+      osc.stop(now + 0.35);
+    } else if (type === 'gameover') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(180, now);
+      osc.frequency.exponentialRampToValueAtTime(50, now + 0.35);
+      gain.gain.setValueAtTime(0.06, now);
+      gain.gain.linearRampToValueAtTime(0.001, now + 0.35);
+      osc.start(now);
+      osc.stop(now + 0.35);
+    }
+  }
+
+  // --- ALAN WALKER "FADED" TÄPNE 2.5-3 MINUTINE SOUNDTRACK ---
+  let bgMusicInterval = null;
+  let musicStep = 0;
+
+  // Täpsed noodisagedused "Faded" helistikus (D#m / F#)
+  const Fs4 = 369.99, C3 = 138.59, D3 = 155.56, B2 = 123.47, Fs2 = 92.50;
+  const Fs5 = 739.99, Cs5 = 554.37, As4 = 466.16, Gs4 = 415.30, Ds5 = 622.25;
+
+  // Akordide arpedžod (F#m - D - A - E)
+  const fadedArpNotes = [
+    // F#m
+    369.99, 440.00, 554.37, 440.00, 369.99, 440.00, 554.37, 440.00,
+    // D
+    293.66, 369.99, 440.00, 369.99, 293.66, 369.99, 440.00, 369.99,
+    // A
+    220.00, 277.18, 329.63, 277.18, 220.00, 277.18, 329.63, 277.18,
+    // E
+    164.81, 246.94, 329.63, 246.94, 164.81, 246.94, 329.63, 246.94
+  ];
+
+  // "Faded" ikooniline vokaalimeloodia
+  const fadedLeadMelody = [
+    Cs5, Cs5, Cs5, As4, Cs5, Cs5, As4, Gs4,
+    Fs4, Fs4, Fs4, Ds5, Fs4, Fs4, Ds5, Cs5,
+    Cs5, Cs5, Cs5, As4, Cs5, Cs5, As4, Gs4,
+    Fs4, Fs4, Fs4, Gs4, As4, Gs4, Fs4, Fs4
+  ];
+
+  function startMusic() {
+    if (bgMusicInterval) return;
+    musicStep = 0;
+
+    bgMusicInterval = setInterval(() => {
+      if (!soundEnabled || !audioCtx || gameState !== 'PLAYING') return;
+
+      const now = audioCtx.currentTime;
+      const speedMult = buffs.slowmo > 0 ? 0.75 : 1.0;
+
+      // 512 sammu = ~2.5 kuni 3 minutit täispikka lugu
+      const cycleStep = musicStep % 512;
+      const section = Math.floor(cycleStep / 128); // 0: Intro, 1: Verse, 2: Chorus, 3: Outro
+
+      // 1. ARPEGGIO TAUST (Klaveri/Pluck stiilis)
+      const arpOsc = audioCtx.createOscillator();
+      const arpGain = audioCtx.createGain();
+      arpOsc.type = 'triangle';
+      const arpFreq = fadedArpNotes[musicStep % fadedArpNotes.length] * speedMult;
+      arpOsc.frequency.setValueAtTime(arpFreq, now);
+      
+      // Valjusus muutuvas sektsioonis
+      const arpVol = section === 0 ? 0.018 : (section === 3 ? 0.008 : 0.012);
+      arpGain.gain.setValueAtTime(arpVol, now);
+      arpGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+      
+      arpOsc.connect(arpGain);
+      arpGain.connect(audioCtx.destination);
+      arpOsc.start(now);
+      arpOsc.stop(now + 0.14);
+
+      // 2. BASS (Sektsioonides 1, 2, 3)
+      if (section >= 1 && musicStep % 4 === 0) {
+        const bassOsc = audioCtx.createOscillator();
+        const bassGain = audioCtx.createGain();
+        bassOsc.type = 'sine';
+        const bassRoots = [Fs2, D3, C3, B2];
+        const currentBass = bassRoots[Math.floor((musicStep % 32) / 8)] * speedMult;
+        
+        bassOsc.frequency.setValueAtTime(currentBass, now);
+        bassGain.gain.setValueAtTime(section === 2 ? 0.03 : 0.018, now);
+        bassGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+        
+        bassOsc.connect(bassGain);
+        bassGain.connect(audioCtx.destination);
+        bassOsc.start(now);
+        bassOsc.stop(now + 0.35);
+      }
+
+      // 3. PEAMELOODIA ("Faded" Chorus e. Sektsioonis 2)
+      if (section === 2 && musicStep % 2 === 0) {
+        const leadFreq = fadedLeadMelody[(Math.floor(musicStep / 2)) % fadedLeadMelody.length] * speedMult;
+
+        const leadOsc = audioCtx.createOscillator();
+        const leadGain = audioCtx.createGain();
+        leadOsc.type = 'sawtooth';
+        leadOsc.frequency.setValueAtTime(leadFreq, now);
+        leadGain.gain.setValueAtTime(0.012, now);
+        leadGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+        
+        leadOsc.connect(leadGain);
+        leadGain.connect(audioCtx.destination);
+        leadOsc.start(now);
+        leadOsc.stop(now + 0.22);
+      }
+
+      // 4. HI-HAT RÜTM (Sektsioonides 1 ja 2)
+      if ((section === 1 || section === 2) && musicStep % 2 === 1) {
+        const bufferSize = audioCtx.sampleRate * 0.02;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = buffer;
+        const noiseGain = audioCtx.createGain();
+        noiseGain.gain.setValueAtTime(0.003, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.02);
+        noise.connect(noiseGain);
+        noiseGain.connect(audioCtx.destination);
+        noise.start(now);
+      }
+
+      musicStep++;
+    }, 150);
+  }
+
+  function stopMusic() {
+    if (bgMusicInterval) {
+      clearInterval(bgMusicInterval);
+      bgMusicInterval = null;
+    }
+  }
+
+  function toggleMute() {
+    soundEnabled = !soundEnabled;
+    muteBtn.innerText = soundEnabled ? '🔊 Heli: SEES (M)' : '🔇 Heli: VÄLJAS (M)';
+  }
+  muteBtn.addEventListener('click', toggleMute);
+
+  // Mängija
   const player = {
-    x: 285,
-    y: 185,
-    size: 30,
+    x: 310,
+    y: 195,
+    size: 28,
     speed: 5,
     color: '#00e676'
   };
 
-  // 2. Tähe süsteem (erinevad värvid, suurused ja väärtused)
+  const buffs = {
+    shield: false,
+    magnet: 0,
+    slowmo: 0
+  };
+
+  let combo = 1;
+  let lastCatchTime = 0;
+
   let star = {};
+  let activeBuffItem = null;
+  let enemies = [];
+  let particles = [];
+  let floatTexts = [];
 
   function spawnStar() {
     const rand = Math.random();
     let points, size, color;
 
-    if (rand < 0.70) {
-      // 70% tõenäosus: Tavaline täht (10p)
-      points = 10;
-      size = 16;
-      color = '#ffea00'; // Kollane
-    } else if (rand < 0.90) {
-      // 20% tõenäosus: Suur täht (20p)
-      points = 20;
-      size = 24;
-      color = '#00e5ff'; // Sinine
+    if (rand < 0.65) {
+      points = 10; size = 16; color = '#ffea00';
+    } else if (rand < 0.88) {
+      points = 20; size = 22; color = '#00e5ff';
     } else {
-      // 10% tõenäosus: Väike supertäht (30p)
-      points = 30;
-      size = 12;
-      color = '#e040fb'; // Lilla / Roosa
+      points = 30; size = 12; color = '#e040fb';
     }
 
     star = {
@@ -94,19 +337,38 @@
     };
   }
 
-  // 3. Vaenlased
-  let enemies = [];
+  function spawnBuffItem() {
+    if (activeBuffItem || Math.random() > 0.45) return;
+
+    const types = ['shield', 'magnet', 'slowmo', 'nuke'];
+    const type = types[Math.floor(Math.random() * types.length)];
+    let color, label;
+
+    if (type === 'shield') { color = '#00e5ff'; label = '🛡️'; }
+    else if (type === 'magnet') { color = '#e040fb'; label = '🧲'; }
+    else if (type === 'slowmo') { color = '#ff9100'; label = '⏳'; }
+    else if (type === 'nuke') { color = '#ff1744'; label = '💣'; }
+
+    activeBuffItem = {
+      x: Math.random() * (canvas.width - 24),
+      y: Math.random() * (canvas.height - 24),
+      size: 24,
+      type: type,
+      color: color,
+      label: label,
+      life: 400
+    };
+  }
 
   function createEnemy() {
     let enemyX, enemyY;
-    
     do {
       enemyX = Math.random() * (canvas.width - 25);
       enemyY = Math.random() * (canvas.height - 25);
-    } while (Math.hypot(enemyX - player.x, enemyY - player.y) < 120);
+    } while (Math.hypot(enemyX - player.x, enemyY - player.y) < 130);
 
     const angle = Math.random() * Math.PI * 2;
-    const speed = 2.5 + Math.random() * 3;
+    const speed = 2.3 + Math.random() * 2.8;
 
     return {
       x: enemyX,
@@ -118,17 +380,39 @@
     };
   }
 
+  function createExplosion(x, y, color, count = 20) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1 + Math.random() * 5;
+      particles.push({
+        x: x,
+        y: y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: 3 + Math.random() * 4,
+        color: color,
+        alpha: 1,
+        life: 0.03 + Math.random() * 0.03
+      });
+    }
+  }
+
+  function addFloatingText(text, x, y, color = '#fff') {
+    floatTexts.push({ text, x, y, color, alpha: 1, vy: -1.2 });
+  }
+
   const keys = {};
 
   window.addEventListener('keydown', (e) => {
+    initAudio();
     keys[e.key] = true;
 
-    if (gameState === 'MENU' && (e.key === 'Enter' || e.key === ' ')) {
-      startGame();
-    }
-    if (gameState === 'GAMEOVER' && (e.key === 'r' || e.key === 'R')) {
-      startGame();
-    }
+    if (e.key === 'm' || e.key === 'M') toggleMute();
+
+    if (gameState === 'MENU' && (e.key === 'Enter' || e.key === ' ')) startGame();
+    if (gameState === 'GAMEOVER' && (e.key === 'r' || e.key === 'R')) startGame();
+    if (gameState === 'PLAYING' && (e.key === 'p' || e.key === 'P')) gameState = 'PAUSED';
+    else if (gameState === 'PAUSED' && (e.key === 'p' || e.key === 'P')) gameState = 'PLAYING';
   });
 
   window.addEventListener('keyup', (e) => keys[e.key] = false);
@@ -136,16 +420,27 @@
   function startGame() {
     score = 0;
     level = 1;
+    nextLevelScore = 150;
+    combo = 1;
     scoreEl.innerText = score;
     levelEl.innerText = level;
+    comboEl.innerText = 'x1';
 
-    player.x = 285;
-    player.y = 185;
+    player.x = 310;
+    player.y = 195;
+
+    buffs.shield = false;
+    buffs.magnet = 0;
+    buffs.slowmo = 0;
 
     enemies = [createEnemy()];
-    spawnStar();
+    particles = [];
+    floatTexts = [];
+    activeBuffItem = null;
 
+    spawnStar();
     gameState = 'PLAYING';
+    startMusic();
   }
 
   function checkCollision(rect1, rect2) {
@@ -160,127 +455,249 @@
   function update() {
     if (gameState !== 'PLAYING') return;
 
-    // Mängija liikumine
     if (keys['ArrowUp'] || keys['w']) player.y -= player.speed;
     if (keys['ArrowDown'] || keys['s']) player.y += player.speed;
     if (keys['ArrowLeft'] || keys['a']) player.x -= player.speed;
     if (keys['ArrowRight'] || keys['d']) player.x += player.speed;
 
-    // Piirde kontroll
     player.x = Math.max(0, Math.min(canvas.width - player.size, player.x));
     player.y = Math.max(0, Math.min(canvas.height - player.size, player.y));
 
-    // Vaenlaste liigutamine
-    enemies.forEach(enemy => {
-      enemy.x += enemy.speedX;
-      enemy.y += enemy.speedY;
+    if (buffs.magnet > 0) buffs.magnet--;
+    if (buffs.slowmo > 0) buffs.slowmo--;
 
-      if (enemy.x <= 0 || enemy.x + enemy.size >= canvas.width) {
-        enemy.speedX *= -1;
+    if (buffs.magnet > 0) {
+      const dist = Math.hypot((star.x + star.size/2) - (player.x + player.size/2), (star.y + star.size/2) - (player.y + player.size/2));
+      if (dist < 180) {
+        star.x += ((player.x + player.size/2) - (star.x + star.size/2)) * 0.08;
+        star.y += ((player.y + player.size/2) - (star.y + star.size/2)) * 0.08;
       }
-      if (enemy.y <= 0 || enemy.y + enemy.size >= canvas.height) {
-        enemy.speedY *= -1;
-      }
+    }
+
+    const enemySpeedMult = buffs.slowmo > 0 ? 0.35 : 1.0;
+
+    enemies.forEach((enemy, index) => {
+      enemy.x += enemy.speedX * enemySpeedMult;
+      enemy.y += enemy.speedY * enemySpeedMult;
+
+      if (enemy.x <= 0 || enemy.x + enemy.size >= canvas.width) enemy.speedX *= -1;
+      if (enemy.y <= 0 || enemy.y + enemy.size >= canvas.height) enemy.speedY *= -1;
 
       if (checkCollision(player, enemy)) {
-        gameState = 'GAMEOVER';
+        if (buffs.shield) {
+          buffs.shield = false;
+          createExplosion(enemy.x + enemy.size/2, enemy.y + enemy.size/2, enemy.color, 25);
+          playSound('explode');
+          addFloatingText('+50 KILBI BOONUS!', enemy.x, enemy.y, '#00e5ff');
+          score += 50;
+          scoreEl.innerText = score;
+          enemies.splice(index, 1);
+        } else {
+          gameState = 'GAMEOVER';
+          stopMusic();
+          playSound('gameover');
+          createExplosion(player.x + player.size/2, player.y + player.size/2, player.color, 35);
 
-        if (score > highScore) {
-          highScore = score;
-          localStorage.setItem('highScore', highScore);
-          highscoreEl.innerText = highScore;
+          if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('highScore', highScore);
+            highscoreEl.innerText = highScore;
+          }
         }
       }
     });
 
-    // Tähe püüdmine
+    if (activeBuffItem) {
+      activeBuffItem.life--;
+      if (activeBuffItem.life <= 0) activeBuffItem = null;
+      else if (checkCollision(player, activeBuffItem)) {
+        playSound('buff');
+        if (activeBuffItem.type === 'shield') {
+          buffs.shield = true;
+          addFloatingText('KILP AKTIIVNE!', player.x, player.y - 10, '#00e5ff');
+        } else if (activeBuffItem.type === 'magnet') {
+          buffs.magnet = 360;
+          addFloatingText('MAGNET!', player.x, player.y - 10, '#e040fb');
+        } else if (activeBuffItem.type === 'slowmo') {
+          buffs.slowmo = 300;
+          addFloatingText('SLOW-MO!', player.x, player.y - 10, '#ff9100');
+        } else if (activeBuffItem.type === 'nuke') {
+          playSound('nuke');
+          enemies.forEach(e => createExplosion(e.x + e.size/2, e.y + e.size/2, '#ff1744', 20));
+          const bonus = enemies.length * 30;
+          score += bonus;
+          scoreEl.innerText = score;
+          addFloatingText(`TUUMAPOMM! +${bonus}p`, player.x - 20, player.y - 10, '#ff1744');
+          enemies = [];
+        }
+        activeBuffItem = null;
+      }
+    }
+
     if (checkCollision(player, star)) {
-      score += star.points;
+      const now = Date.now();
+      if (now - lastCatchTime < 2500) {
+        combo = Math.min(5, combo + 1);
+      } else {
+        combo = 1;
+      }
+      lastCatchTime = now;
+      comboEl.innerText = `x${combo}`;
+
+      const earned = star.points * combo;
+      score += earned;
       scoreEl.innerText = score;
 
-      // Taseme tõus iga 100 punkti järel
-      const newLevel = Math.floor(score / 100) + 1;
-      if (newLevel > level) {
-        level = newLevel;
+      playSound('star');
+      addFloatingText(`+${earned}`, star.x, star.y, star.color);
+      createExplosion(star.x + star.size/2, star.y + star.size/2, star.color, 10);
+
+      // PROGRESSEERUV TASEME TÕUS
+      if (score >= nextLevelScore) {
+        level++;
         levelEl.innerText = level;
+        nextLevelScore += level * 100;
 
         enemies.push(createEnemy());
+        spawnBuffItem();
+        addFloatingText(`TASE ${level}!`, canvas.width / 2, 100, '#00e676');
 
         enemies.forEach(e => {
-          e.speedX *= 1.1;
-          e.speedY *= 1.1;
+          e.speedX *= 1.08;
+          e.speedY *= 1.08;
         });
       }
 
-      // Tekita uus suvaline täht
       spawnStar();
     }
+
+    particles.forEach((p, idx) => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.alpha -= p.life;
+      if (p.alpha <= 0) particles.splice(idx, 1);
+    });
+
+    floatTexts.forEach((ft, idx) => {
+      ft.y += ft.vy;
+      ft.alpha -= 0.02;
+      if (ft.alpha <= 0) floatTexts.splice(idx, 1);
+    });
+
+    let tagsHTML = '';
+    if (buffs.shield) tagsHTML += '<span class="buff-tag" style="color:#00e5ff">🛡️ Kilp Valmis</span>';
+    if (buffs.magnet > 0) tagsHTML += `<span class="buff-tag" style="color:#e040fb">🧲 Magnet (${Math.ceil(buffs.magnet/60)}s)</span>`;
+    if (buffs.slowmo > 0) tagsHTML += `<span class="buff-tag" style="color:#ff9100">⏳ Slow-Mo (${Math.ceil(buffs.slowmo/60)}s)</span>`;
+    buffsContainer.innerHTML = tagsHTML;
   }
 
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // PEAMENÜÜ
     if (gameState === 'MENU') {
       ctx.fillStyle = '#ffffff';
       ctx.textAlign = 'center';
 
       ctx.font = 'bold 36px sans-serif';
-      ctx.fillText('TÄHTEDE PÜÜDMINE', canvas.width / 2, canvas.height / 2 - 60);
+      ctx.fillText('TÄHTEDE PÜÜDMINE', canvas.width / 2, canvas.height / 2 - 70);
 
       ctx.font = '16px sans-serif';
-      ctx.fillStyle = '#ffea00';
-      ctx.fillText('Kollane täht = 10p', canvas.width / 2, canvas.height / 2 - 10);
-      ctx.fillStyle = '#00e5ff';
-      ctx.fillText('Sinine täht = 20p', canvas.width / 2, canvas.height / 2 + 15);
-      ctx.fillStyle = '#e040fb';
-      ctx.fillText('Lilla täht = 30p', canvas.width / 2, canvas.height / 2 + 40);
+      ctx.fillStyle = '#ffea00'; ctx.fillText('Kollane täht = 10p  |  Sinine = 20p  |  Lilla = 30p', canvas.width / 2, canvas.height / 2 - 20);
+      ctx.fillStyle = '#00e5ff'; ctx.fillText('Võimendused: 🛡️ Kilp | 🧲 Magnet | ⏳ Slow-Mo | 💣 Tuumapomm', canvas.width / 2, canvas.height / 2 + 10);
+      ctx.fillStyle = '#aaa';    ctx.fillText('Juhi WASD / nooltega | P = Paus', canvas.width / 2, canvas.height / 2 + 40);
 
       ctx.fillStyle = '#00e676';
       ctx.font = 'bold 18px sans-serif';
-      ctx.fillText('Vajuta ENTER või SPACE alustamiseks', canvas.width / 2, canvas.height / 2 + 90);
+      ctx.fillText('Vajuta ENTER või SPACE alustamiseks', canvas.width / 2, canvas.height / 2 + 95);
       return;
     }
 
-    // GAME OVER
+    if (gameState === 'PAUSED') {
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 36px sans-serif';
+      ctx.fillText('PAUS', canvas.width / 2, canvas.height / 2);
+      ctx.font = '16px sans-serif';
+      ctx.fillText('Vajuta "P" et jätkata', canvas.width / 2, canvas.height / 2 + 40);
+      return;
+    }
+
     if (gameState === 'GAMEOVER') {
       ctx.fillStyle = '#ffffff';
       ctx.textAlign = 'center';
 
-      ctx.font = 'bold 32px sans-serif';
+      ctx.font = 'bold 34px sans-serif';
       ctx.fillText('MÄNG LÄBI!', canvas.width / 2, canvas.height / 2 - 40);
 
       ctx.font = '20px sans-serif';
-      ctx.fillText(`Lõppskoor: ${score}  |  Tase: ${level}`, canvas.width / 2, canvas.height / 2);
+      ctx.fillText(`Lõppskoor: ${score}  |  Tase: ${level}`, canvas.width / 2, canvas.height / 2 + 5);
 
       if (score === highScore && score > 0) {
         ctx.fillStyle = '#ffea00';
-        ctx.fillText('UUS REKORDSKOOR!', canvas.width / 2, canvas.height / 2 + 35);
+        ctx.fillText('UUS REKORDSKOOR!', canvas.width / 2, canvas.height / 2 + 40);
       } else {
         ctx.fillStyle = '#aaa';
-        ctx.fillText(`Parim tulemus: ${highScore}`, canvas.width / 2, canvas.height / 2 + 35);
+        ctx.fillText(`Parim tulemus: ${highScore}`, canvas.width / 2, canvas.height / 2 + 40);
       }
 
       ctx.font = '16px sans-serif';
       ctx.fillStyle = '#00e676';
-      ctx.fillText('Vajuta "R" et uuesti alustada', canvas.width / 2, canvas.height / 2 + 80);
+      ctx.fillText('Vajuta "R" et uuesti alustada', canvas.width / 2, canvas.height / 2 + 85);
       return;
     }
 
     // MÄNGU SISU
-    // Joonista täht
     ctx.fillStyle = star.color;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = star.color;
     ctx.fillRect(star.x, star.y, star.size, star.size);
 
-    // Joonista vaenlased
+    if (activeBuffItem) {
+      ctx.fillStyle = activeBuffItem.color;
+      ctx.shadowColor = activeBuffItem.color;
+      ctx.fillRect(activeBuffItem.x, activeBuffItem.y, activeBuffItem.size, activeBuffItem.size);
+      ctx.fillStyle = '#fff';
+      ctx.font = '14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(activeBuffItem.label, activeBuffItem.x + 12, activeBuffItem.y + 17);
+    }
+
     enemies.forEach(enemy => {
       ctx.fillStyle = enemy.color;
+      ctx.shadowColor = enemy.color;
       ctx.fillRect(enemy.x, enemy.y, enemy.size, enemy.size);
     });
 
-    // Joonista mängija
     ctx.fillStyle = player.color;
+    ctx.shadowColor = player.color;
     ctx.fillRect(player.x, player.y, player.size, player.size);
+
+    if (buffs.shield) {
+      ctx.strokeStyle = '#00e5ff';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#00e5ff';
+      ctx.beginPath();
+      ctx.arc(player.x + player.size/2, player.y + player.size/2, player.size * 0.85, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    ctx.shadowBlur = 0;
+
+    particles.forEach(p => {
+      ctx.globalAlpha = p.alpha;
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x, p.y, p.size, p.size);
+    });
+
+    floatTexts.forEach(ft => {
+      ctx.globalAlpha = ft.alpha;
+      ctx.fillStyle = ft.color;
+      ctx.font = 'bold 15px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(ft.text, ft.x, ft.y);
+    });
+
+    ctx.globalAlpha = 1.0;
   }
 
   function gameLoop() {

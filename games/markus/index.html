@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -219,8 +219,8 @@
 <div id="statusL" class="hud">
   <div id="money"><span id="moneyV">$800</span><span id="moneyDelta"></span></div>
   <div class="statrow">
-    <div class="stat" id="hpBox"><div class="top"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg><span class="num" id="hp">100</span></div><div class="bar"><i id="hpBar"></i></div></div>
-    <div class="stat" id="armBox"><div class="top"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/></svg><span class="num" id="arm">0</span></div><div class="bar"><i id="armBar"></i></div></div>
+    <div class="stat" id="hpBox"><div class="top"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg><span class="num" id="hp">100</span></div><div class="bar"><i id="hpBar"></div></div>
+    <div class="stat" id="armBox"><div class="top"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/></svg><span class="num" id="arm">0</span></div><div class="bar"><i id="armBar"></div></div>
   </div>
 </div>
 
@@ -231,13 +231,13 @@
     <div id="wname">USP</div>
     <div class="ammoRow"><span id="ammoMag">12</span><span id="ammoRes">/ 100</span></div>
     <div id="pips"></div>
-    <div id="reloadWrap"><i id="reloadBar"></i></div>
+    <div id="reloadWrap"><i id="reloadBar"></div>
   </div>
 </div>
 
 <div id="banner" class="hud"><div id="msg"></div><div id="sub"></div></div>
 <div id="toast"></div>
-<div id="prompt" class="hud" style="display:none"><div id="promptTxt"></div><div id="promptBarWrap"><i id="promptBar"></i></div></div>
+<div id="prompt" class="hud" style="display:none"><div id="promptTxt"></div><div id="promptBarWrap"><i id="promptBar"></div></div>
 <div id="flashW"></div>
 <div id="smokeOv"></div>
 <div id="spec" class="hud"></div>
@@ -269,21 +269,21 @@
       <div class="col">
         <div class="panel"><h5>1 &nbsp;GAME MODE</h5>
           <div id="modeRow">
-            <button data-m="bomb" class="sel"><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="14" r="7" fill="currentColor"/><path d="M16 7l3-3M18 3h3v3" stroke="currentColor" stroke-width="2" fill="none"/></svg><div><b>BOMB DEFUSAL</b><span>Plant or defuse the C4</span></div></button>
-            <button data-m="tdm"><svg class="ic" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/></svg><div><b>TEAM DEATHMATCH</b><span>Respawn, first to 40 kills</span></div></button>
-            <button data-m="arms"><svg class="ic" viewBox="0 0 24 24"><path d="M3 20h5v-5h5v-5h5V5h3" stroke="currentColor" stroke-width="3" stroke-linejoin="round" fill="none"/></svg><div><b>ARMS RACE</b><span>Every kill = a new weapon</span></div></button>
-            <button data-m="train"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/></svg><div><b>AIM TRAINING</b><span>2 minutes, moving targets</span></div></button>
+            <button data-m="bomb" class="sel"><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="14" r="7" fill="currentColor"/><path d="M16 7l3-3M18 3h3v3" stroke="currentColor" stroke-width="2" fill="none"/></svg><div>BOMB DEFUSAL<span>Plant or defuse the C4</span></div></button>
+            <button data-m="tdm"><svg class="ic" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="3" stroke-linecap="round" fill="none"/></svg><div>TEAM DEATHMATCH<span>Respawn, first to 40 kills</span></div></button>
+            <button data-m="arms"><svg class="ic" viewBox="0 0 24 24"><path d="M3 20h5v-5h5v-5h5V5h3" stroke="currentColor" stroke-width="3" stroke-linejoin="round" fill="none"/></svg><div>ARMS RACE<span>Every kill = a new weapon</span></div></button>
+            <button data-m="train"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/></svg><div>AIM TRAINING<span>2 minutes, moving targets</span></div></button>
           </div>
         </div>
         <div class="panel"><h5>3 &nbsp;YOUR SIDE</h5>
           <div id="teamRow">
-            <button data-t="CT" class="sel"><svg class="ic" viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z" fill="currentColor"/></svg><div><b>COUNTER-TERRORISTS</b><span>Defend sites, defuse the C4</span></div></button>
-            <button data-t="T"><svg class="ic" viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z" fill="currentColor"/></svg><div><b>TERRORISTS</b><span>Plant the C4 on A or B</span></div></button>
+            <button data-t="CT" class="sel"><svg class="ic" viewBox="0 0 24 24"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z" fill="currentColor"/></svg><div>COUNTER-TERRORISTS<span>Defend sites, defuse the C4</span></div></button>
+            <button data-t="T"><svg class="ic" viewBox="0 0 24 24"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z" fill="currentColor"/></svg><div>TERRORISTS<span>Plant the C4 on A or B</span></div></button>
           </div>
         </div>
         <div class="panel"><h5>4 &nbsp;DIFFICULTY</h5>
           <div id="diffRow">
-            <button data-d="0"><b>EASY</b></button><button data-d="1" class="sel"><b>NORMAL</b></button><button data-d="2"><b>HARD</b></button>
+            <button data-d="0">EASY</button><button data-d="1" class="sel">NORMAL</button><button data-d="2">HARD</button>
           </div>
           <div id="diffDesc"></div>
         </div>
@@ -292,8 +292,8 @@
       <div class="col">
         <div class="panel"><h5>2 &nbsp;MAP</h5>
           <div id="mapRow">
-            <button data-map="dust" class="sel"><canvas id="prevDust" width="110" height="110"></canvas><div><b>DESERT</b><span>Open lanes, a covered tunnel to B and a long way to A.</span></div></button>
-            <button data-map="town"><canvas id="prevTown" width="110" height="110"></canvas><div><b>TOWN</b><span>Tight alleys, a fountain plaza and walled courtyards.</span></div></button>
+            <button data-map="dust" class="sel"><canvas id="prevDust" width="110" height="110"></canvas><div>DESERT<span>Open lanes, a covered tunnel to B and a long way to A.</span></div></button>
+            <button data-map="town"><canvas id="prevTown" width="110" height="110"></canvas><div>TOWN<span>Tight alleys, a fountain plaza and walled courtyards.</span></div></button>
           </div>
         </div>
         <div class="panel"><h5>YOUR MATCH</h5>
@@ -1054,14 +1054,42 @@ function pickSpawns(zmin, zmax) {
 }
 
 // ---------------------------------------------------------------- helin
-let AC = null, noiseBuffer = null, master = null, ambientPending = false;
+let AC = null, noiseBuffer = null, pinkBuffer = null, master = null, comp = null, verbIn = null, echoIn = null, ambientPending = false;
+function makeImpulse(a, dur, decay) {
+  const len = Math.floor(a.sampleRate * dur), buf = a.createBuffer(2, len, a.sampleRate), sr = a.sampleRate;
+  for (let c = 0; c < 2; c++) {
+    const d = buf.getChannelData(c); let lp = 0;
+    for (let i = 0; i < len; i++) {
+      const k = i / len, coef = 0.55 + 0.42 * k;                                     // tail gets darker the longer it runs
+      lp = lp * coef + (Math.random() * 2 - 1) * (1 - coef);
+      d[i] = lp * Math.pow(1 - k, decay) * 3.2;
+    }
+    for (const ms of [11, 23, 38, 61, 97]) { const i = Math.floor((ms + c * 3) / 1000 * sr); if (i < len) d[i] += (c ? -0.6 : 0.6) * (1 - ms / 160); }   // early reflections
+  }
+  return buf;
+}
 function audio() {
   if (!AC) {
     try {
       AC = new (window.AudioContext || window.webkitAudioContext)();
-      master = AC.createGain(); master.gain.value = settings.vol / 100; master.connect(AC.destination);
+      master = AC.createGain(); master.gain.value = settings.vol / 100;
+      comp = AC.createDynamicsCompressor();
+      comp.threshold.value = -16; comp.knee.value = 20; comp.ratio.value = 5; comp.attack.value = 0.003; comp.release.value = 0.22;
+      master.connect(comp); comp.connect(AC.destination);
+      // short outdoor-ish reverb, shared by every sound through a send
+      const cv = AC.createConvolver(); cv.buffer = makeImpulse(AC, 1.7, 2.8);
+      const vg = AC.createGain(); vg.gain.value = 0.55; cv.connect(vg); vg.connect(master); verbIn = cv;
+      // slap-back echo (outdoor reflections off distant walls)
+      const ei = AC.createGain(), dl = AC.createDelay(1.0), fb = AC.createGain(), elp = AC.createBiquadFilter(), eo = AC.createGain();
+      dl.delayTime.value = 0.21; fb.gain.value = 0.3; elp.type = 'lowpass'; elp.frequency.value = 1700; eo.gain.value = 0.5;
+      ei.connect(dl); dl.connect(elp); elp.connect(fb); fb.connect(dl); elp.connect(eo); eo.connect(master); echoIn = ei;
       ambientPending = true;
-      const len = AC.sampleRate;
+      const len = AC.sampleRate * 2;
+      pinkBuffer = AC.createBuffer(1, len, AC.sampleRate);
+      { const pd = pinkBuffer.getChannelData(0); let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+        for (let i = 0; i < len; i++) { const w = Math.random() * 2 - 1;
+          b0 = 0.99886 * b0 + w * 0.0555179; b1 = 0.99332 * b1 + w * 0.0750759; b2 = 0.969 * b2 + w * 0.153852; b3 = 0.8665 * b3 + w * 0.3104856; b4 = 0.55 * b4 + w * 0.5329522; b5 = -0.7616 * b5 - w * 0.016898;
+          pd[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * 0.5362) * 0.22; b6 = w * 0.115926; } }
       noiseBuffer = AC.createBuffer(1, len, AC.sampleRate);
       const d = noiseBuffer.getChannelData(0);
       for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
@@ -1070,39 +1098,127 @@ function audio() {
   if (AC && ambientPending && noiseBuffer) { ambientPending = false; startAmbient(AC); }
   return AC;
 }
+// --- small synth helpers: noise burst through a filter, and a pitched tone, both with a fast attack and exponential decay
+function nz(a, t, dur, o) {
+  const src = a.createBufferSource(); src.buffer = o.buf || noiseBuffer; src.loop = true; src.playbackRate.value = o.rate || 1;
+  const f = a.createBiquadFilter(); f.type = o.type || 'lowpass'; f.Q.value = o.q || 0.7;
+  f.frequency.setValueAtTime(o.f, t); if (o.f2) f.frequency.exponentialRampToValueAtTime(o.f2, t + dur);
+  const g = a.createGain(), at = o.att || 0.001;
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(Math.max(o.vol, 0.0002), t + at); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  src.connect(f); f.connect(g); g.connect(o.out); src.start(t, Math.random()); src.stop(t + dur + 0.05);
+}
+function tn(a, t, dur, o) {
+  const os = a.createOscillator(); os.type = o.type || 'sine';
+  os.frequency.setValueAtTime(o.f, t); if (o.f2) os.frequency.exponentialRampToValueAtTime(o.f2, t + dur * (o.fd || 1));
+  const g = a.createGain(); g.gain.setValueAtTime(Math.max(o.vol, 0.0002), t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  os.connect(g); g.connect(o.out); os.start(t); os.stop(t + dur + 0.05);
+}
+// output bus: pan + distance low-pass (far sounds get duller) + reverb send (far sounds get wetter)
+function mkOut(a, pan, dist, wet, echo) {
+  const out = a.createGain(); out.gain.value = 2.4;                                       // overall level of synthesized effects
+  const lp = a.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = dist > 0 ? clamp(17000 - dist * 230, 1600, 17000) : 19000;
+  out.connect(lp);
+  let node = lp;
+  if (a.createStereoPanner) { const p = a.createStereoPanner(); p.pan.value = clamp(pan || 0, -1, 1); lp.connect(p); node = p; }
+  node.connect(master || a.destination);
+  if (echo > 0 && echoIn) { const e = a.createGain(); e.gain.value = echo * (0.7 + clamp((dist || 0) / 50, 0, 1)); node.connect(e); e.connect(echoIn); }
+  if (wet > 0 && verbIn) { const s = a.createGain(); s.gain.value = wet * (1 + clamp((dist || 0) / 60, 0, 1.2)); node.connect(s); s.connect(verbIn); }
+  return out;
+}
+function sfxSpace(x, z) {
+  const dx = x - P.x, dz = z - P.z, d = Math.hypot(dx, dz);
+  const rx = Math.cos(P.yaw), rz = -Math.sin(P.yaw);
+  return { d: d, pan: d > 0.1 ? (dx * rx + dz * rz) / d : 0 };
+}
 function startAmbient(a) {
   try {
-    const src = a.createBufferSource(); src.buffer = noiseBuffer; src.loop = true;
-    const bp = a.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 380; bp.Q.value = 0.6;
-    const g = a.createGain(); g.gain.value = 0.05;
-    const lfo = a.createOscillator(); lfo.frequency.value = 0.12;
-    const lg = a.createGain(); lg.gain.value = 0.03;
-    lfo.connect(lg); lg.connect(g.gain);
-    src.connect(bp); bp.connect(g); g.connect(master || a.destination);
-    src.start(); lfo.start();
+    const lowSrc = a.createBufferSource(); lowSrc.buffer = noiseBuffer; lowSrc.loop = true;
+    const bp = a.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 300; bp.Q.value = 0.5;
+    const g = a.createGain(); g.gain.value = 0.04;
+    const lfo = a.createOscillator(); lfo.frequency.value = 0.09;
+    const lg = a.createGain(); lg.gain.value = 0.022; lfo.connect(lg); lg.connect(g.gain);
+    lowSrc.connect(bp); bp.connect(g); g.connect(master || a.destination); lowSrc.start(); lfo.start();
+    // thin whistling layer that swells with gusts
+    const hiSrc = a.createBufferSource(); hiSrc.buffer = noiseBuffer; hiSrc.loop = true; hiSrc.playbackRate.value = 0.7;
+    const bp2 = a.createBiquadFilter(); bp2.type = 'bandpass'; bp2.frequency.value = 1100; bp2.Q.value = 4;
+    const g2 = a.createGain(); g2.gain.value = 0.004;
+    const lfo2 = a.createOscillator(); lfo2.frequency.value = 0.05;
+    const lg2 = a.createGain(); lg2.gain.value = 0.004; lfo2.connect(lg2); lg2.connect(g2.gain);
+    hiSrc.connect(bp2); bp2.connect(g2); g2.connect(master || a.destination); hiSrc.start(); lfo2.start();
+    // rare, quiet, far away bird calls
+    const chirp = () => {
+      try {
+        const t = a.currentTime, out = mkOut(a, rand(-0.8, 0.8), 55, 0.5), f0 = rand(1900, 2900);
+        for (let i = 0; i < 2 + Math.floor(Math.random() * 3); i++) tn(a, t + i * 0.13, 0.09, { type: 'sine', f: f0, f2: f0 * 1.35, vol: 0.018, out: out, fd: 0.8 });
+      } catch (e) {}
+      setTimeout(chirp, rand(12000, 26000));
+    };
+    setTimeout(chirp, rand(6000, 14000));
   } catch (e) {}
 }
-function sfxClick(vol) { sfxGun(vol || 0.08, 2600, 0.05, 0, true); }
-function sfxGun(vol, tone, dur, pan, noThump) {
+function sfxClick(vol) { sfxMech('tick', vol || 0.08); }
+
+// per-weapon shot recipe. Real gunfire = broadband muzzle blast, not a tone:
+//   ck  click      : first few ms, full-spectrum transient
+//   cr  crack      : supersonic / muzzle snap, wide band (crf Hz, crd s)
+//   md  mid blast  : pink-noise body (mdf Hz, mdd s)
+//   lw  low blast  : chest-thump noise (lwf Hz, lwd s)
+//   sb  sub thump  : pressure wave (sbf Hz, sbd s), barely any pitch movement
+//   drive          : saturation amount (clipping is what makes it sound loud and violent)
+//   wet / echo / tail : reverb send, slap-back echo from the surroundings, rolling tail length
+const GUNFX = {
+  glock:  { ck: 0.9, cr: 1.0, crf: 3200, crd: 0.035, md: 0.8, mdf: 1500, mdd: 0.07, lw: 0.55, lwf: 380, lwd: 0.09, sb: 0.25, sbf: 95, sbd: 0.08, drive: 2.5, wet: 0.2, echo: 0.22, tail: 0.3 },
+  usp:    { ck: 0.9, cr: 1.0, crf: 2800, crd: 0.04, md: 0.85, mdf: 1200, mdd: 0.08, lw: 0.65, lwf: 340, lwd: 0.11, sb: 0.3, sbf: 90, sbd: 0.1, drive: 2.6, wet: 0.22, echo: 0.25, tail: 0.35 },
+  deagle: { ck: 1.0, cr: 1.2, crf: 2400, crd: 0.06, md: 1.1, mdf: 900, mdd: 0.16, lw: 1.1, lwf: 260, lwd: 0.24, sb: 0.9, sbf: 70, sbd: 0.22, drive: 3.2, wet: 0.4, echo: 0.42, tail: 0.8 },
+  mp5:    { ck: 0.9, cr: 1.0, crf: 3600, crd: 0.03, md: 0.75, mdf: 1700, mdd: 0.06, lw: 0.5, lwf: 420, lwd: 0.08, sb: 0.2, sbf: 100, sbd: 0.07, drive: 2.5, wet: 0.15, echo: 0.2, tail: 0.25 },
+  ak47:   { ck: 1.0, cr: 1.25, crf: 2600, crd: 0.05, md: 1.0, mdf: 1000, mdd: 0.13, lw: 1.0, lwf: 300, lwd: 0.2, sb: 0.75, sbf: 75, sbd: 0.2, drive: 3.3, wet: 0.32, echo: 0.38, tail: 0.6 },
+  m4a1:   { ck: 1.0, cr: 1.2, crf: 3800, crd: 0.04, md: 0.85, mdf: 1400, mdd: 0.1, lw: 0.7, lwf: 350, lwd: 0.15, sb: 0.5, sbf: 80, sbd: 0.14, drive: 2.9, wet: 0.26, echo: 0.3, tail: 0.45 },
+  famas:  { ck: 1.0, cr: 1.15, crf: 3500, crd: 0.04, md: 0.85, mdf: 1250, mdd: 0.1, lw: 0.7, lwf: 340, lwd: 0.15, sb: 0.5, sbf: 78, sbd: 0.14, drive: 2.9, wet: 0.26, echo: 0.3, tail: 0.45 },
+  galil:  { ck: 1.0, cr: 1.2, crf: 3000, crd: 0.045, md: 0.95, mdf: 1100, mdd: 0.12, lw: 0.85, lwf: 320, lwd: 0.18, sb: 0.65, sbf: 76, sbd: 0.17, drive: 3.1, wet: 0.3, echo: 0.34, tail: 0.5 },
+  scout:  { ck: 1.0, cr: 1.3, crf: 3000, crd: 0.06, md: 1.1, mdf: 900, mdd: 0.18, lw: 1.1, lwf: 280, lwd: 0.26, sb: 0.85, sbf: 68, sbd: 0.25, drive: 3.3, wet: 0.45, echo: 0.5, tail: 0.9 },
+  awp:    { ck: 1.0, cr: 1.4, crf: 2200, crd: 0.08, md: 1.2, mdf: 700, mdd: 0.25, lw: 1.3, lwf: 220, lwd: 0.4, sb: 1.2, sbf: 55, sbd: 0.45, drive: 3.6, wet: 0.6, echo: 0.65, tail: 1.5 },
+  m3:     { ck: 0.9, cr: 0.9, crf: 1800, crd: 0.06, md: 1.2, mdf: 600, mdd: 0.25, lw: 1.3, lwf: 240, lwd: 0.3, sb: 1.0, sbf: 65, sbd: 0.3, drive: 3.1, wet: 0.38, echo: 0.4, tail: 0.8 },
+};
+const _driveCurves = {};
+function driveCurve(k) {
+  const key = k.toFixed(1);
+  if (!_driveCurves[key]) { const n = 1024, c = new Float32Array(n), m = Math.tanh(k); for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; c[i] = Math.tanh(k * x) / m; } _driveCurves[key] = c; }
+  return _driveCurves[key];
+}
+function sfxGun(vol, tone, dur, pan, noThump, wid, dist) {
   try {
     const a = audio(); if (!a || vol < 0.02) return;
     if (a.state === 'suspended') a.resume();
     const t = a.currentTime;
-    const out = a.createGain(); out.gain.value = 1;
-    if (a.createStereoPanner) { const p = a.createStereoPanner(); p.pan.value = clamp(pan || 0, -1, 1); out.connect(p); p.connect((master || a.destination)); }
-    else out.connect((master || a.destination));
-    const src = a.createBufferSource(); src.buffer = noiseBuffer;
-    const f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = tone;
-    const g = a.createGain();
-    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    src.connect(f); f.connect(g); g.connect(out);
-    src.start(t, Math.random() * 0.5); src.stop(t + dur);
-    if (noThump) return;
-    const o = a.createOscillator(); o.type = 'sine';
-    o.frequency.setValueAtTime(130, t); o.frequency.exponentialRampToValueAtTime(40, t + dur * 0.7);
-    const og = a.createGain();
-    og.gain.setValueAtTime(vol * 0.9, t); og.gain.exponentialRampToValueAtTime(0.001, t + dur * 0.7);
-    o.connect(og); og.connect(out); o.start(t); o.stop(t + dur);
+    if (noThump && !wid) {                                                                      // tiny click / generic non-gun noise
+      const out = mkOut(a, pan, dist || 0, 0.04);
+      nz(a, t, dur, { type: 'lowpass', f: tone, vol: vol, out: out });
+      return;
+    }
+    const F = GUNFX[wid] || { ck: 0.9, cr: 1.0, crf: tone * 1.4, crd: 0.05, md: 0.9, mdf: tone * 0.5, mdd: dur * 0.5, lw: 0.8, lwf: 300, lwd: dur * 0.6, sb: 0.5, sbf: 80, sbd: dur * 0.5, drive: 2.8, wet: 0.25, echo: 0.3, tail: 0.4 };
+    const v = vol * rand(0.93, 1.07), pr = rand(0.95, 1.06), d = dist || 0;
+    const near = clamp(1 - d / 70, 0.12, 1);                                                    // far away: the sharp crack dies first, the thump and the echo survive
+    const out = mkOut(a, pan, d, F.wet, F.echo);
+    const sh = a.createWaveShaper(); sh.curve = driveCurve(F.drive); sh.oversample = '2x'; sh.connect(out);
+    const pre = a.createGain(); pre.gain.value = 1.1; pre.connect(sh);
+    nz(a, t, 0.007, { type: 'highpass', f: 700, vol: v * F.ck * 1.3 * near, out: pre, att: 0.0002 });                                                      // click
+    nz(a, t, F.crd, { type: 'bandpass', f: F.crf * pr, q: 0.45, vol: v * F.cr * near, out: pre, att: 0.0003 });                                           // crack
+    nz(a, t, F.crd * 0.7, { type: 'highpass', f: 5000, vol: v * F.cr * 0.4 * near, out: pre, att: 0.0003 });                                              // air
+    nz(a, t, F.mdd, { type: 'lowpass', f: F.mdf * 3.2 * pr, f2: F.mdf * 0.7, q: 0.5, vol: v * F.md * 1.3, out: pre, att: 0.0008, buf: pinkBuffer });             // mid blast
+    nz(a, t, F.lwd, { type: 'lowpass', f: F.lwf * 1.5, f2: F.lwf * 0.55, q: 0.6, vol: v * F.lw, out: pre, att: 0.002, buf: pinkBuffer });                  // low blast
+    tn(a, t, F.sbd, { type: 'sine', f: F.sbf * pr, f2: F.sbf * 0.7, vol: v * F.sb * 0.65, out: pre, fd: 0.8 });                                                  // pressure thump
+    nz(a, t, F.sbd * 1.3, { type: 'lowpass', f: 110, vol: v * F.sb * 0.5, out: pre, att: 0.003, buf: pinkBuffer });
+    if (F.tail) nz(a, t + 0.015, F.tail, { type: 'lowpass', f: 900, f2: 140, q: 0.4, vol: v * 0.3, out: out, att: 0.04, buf: pinkBuffer, rate: 0.8 });     // rolling reflections
+    nz(a, t + rand(0.02, 0.04), 0.012, { type: 'bandpass', f: 2400, q: 3, vol: v * 0.07 * near, out: out });                                              // bolt carrier clack
+    if (!d) {                                                                                     // the player's own gun: brass hitting the ground + action cycling
+      if (wid !== 'm3' && wid !== 'scout' && wid !== 'awp') {
+        const ft = t + rand(0.24, 0.36), fr = rand(4200, 5600);
+        for (const [m, vv] of [[1, 0.025], [1.52, 0.014], [2.31, 0.008]]) tn(a, ft, 0.07, { type: 'sine', f: fr * m, f2: fr * m * 0.97, vol: vv, out: out });
+        for (const m of [1, 1.18]) tn(a, ft + 0.06 + 0.03 * m, 0.05, { type: 'sine', f: fr * m * 0.9, vol: 0.012, out: out });
+      }
+      if (wid === 'm3') setTimeout(() => sfxMech('pump', 0.12), 430);
+      else if (wid === 'scout' || wid === 'awp') setTimeout(() => sfxMech('bolt', 0.12), 650);
+    }
   } catch (e) {}
 }
 function sfxBeep(freq, dur, vol, type) {
@@ -1114,12 +1230,156 @@ function sfxBeep(freq, dur, vol, type) {
     o.connect(g); g.connect((master || a.destination)); o.start(t); o.stop(t + dur);
   } catch (e) {}
 }
-function sfxAt(x, z, vol, tone, dur, noThump) {
-  const dx = x - P.x, dz = z - P.z, d = Math.hypot(dx, dz);
-  const v = vol * clamp(1 - d / 70, 0, 1);
-  const rx = Math.cos(P.yaw), rz = -Math.sin(P.yaw);
-  const pan = d > 0.1 ? (dx * rx + dz * rz) / d : 0;
-  sfxGun(v, tone, dur, pan, noThump);
+function sfxAt(x, z, vol, tone, dur, noThump, wid) {
+  const s = sfxSpace(x, z);
+  const v = vol * clamp(1 - s.d / (wid === 'awp' || wid === 'scout' ? 110 : 75), 0, 1);
+  sfxGun(v, tone, dur, s.pan, noThump, wid, s.d);
+}
+
+// ---- mechanical foley: clicks, mags, bolts, pumps
+function sfxMech(kind, vol, pan, dist) {
+  try {
+    const a = audio(); if (!a) return;
+    if (a.state === 'suspended') a.resume();
+    const t = a.currentTime, out = mkOut(a, pan || 0, dist || 0, 0.07);
+    vol = vol || 0.1;
+    const click = (dt, f, v, d) => { nz(a, t + dt, d || 0.02, { type: 'bandpass', f: f, q: 2.5, vol: v, out: out }); tn(a, t + dt, (d || 0.02) * 1.6, { type: 'square', f: f * 0.55, vol: v * 0.18, out: out }); };
+    const thunk = (dt, f, v) => { tn(a, t + dt, 0.1, { type: 'sine', f: f, f2: f * 0.5, vol: v, out: out }); nz(a, t + dt, 0.05, { type: 'lowpass', f: 600, vol: v * 0.7, out: out }); };
+    const rasp = (dt, v) => nz(a, t + dt, 0.09, { type: 'bandpass', f: 1400, f2: 3600, q: 1.1, vol: v, out: out, att: 0.02 });
+    switch (kind) {
+      case 'magout': click(0, 1800, vol, 0.03); thunk(0.07, 230, vol * 0.9); break;
+      case 'magin':  thunk(0, 270, vol * 0.9); click(0.05, 3200, vol * 1.2, 0.025); click(0.09, 2300, vol * 0.8, 0.02); break;
+      case 'slide':  rasp(0, vol * 0.7); click(0.1, 2800, vol * 1.1, 0.025); click(0.15, 2000, vol * 0.9, 0.02); break;
+      case 'bolt':   click(0, 2400, vol, 0.025); rasp(0.04, vol * 0.7); click(0.17, 2100, vol * 1.15, 0.03); thunk(0.2, 300, vol * 0.5); break;
+      case 'pump':   click(0, 1600, vol * 1.2, 0.03); thunk(0.04, 180, vol * 0.7); click(0.17, 1900, vol * 1.3, 0.03); thunk(0.21, 210, vol * 0.8); break;
+      case 'shell':  click(0, 2600, vol * 0.9, 0.02); thunk(0.03, 320, vol * 0.6); break;
+      case 'dry':    click(0, 1400, vol * 2.2, 0.025); thunk(0.005, 380, vol * 0.8); break;
+      case 'draw':   rasp(0, vol * 1.0); click(0.09, 2000, vol * 1.5, 0.02); break;
+      case 'pin':    click(0, 3000, vol, 0.02); tn(a, t + 0.01, 0.12, { type: 'sine', f: 3400, vol: vol * 0.25, out: out }); break;
+      default:       click(0, 3600, vol, 0.02);
+    }
+  } catch (e) {}
+}
+function sfxReload(wid, dur) {
+  const plan = ({
+    m3:    [[0.1, 'shell'], [0.28, 'shell'], [0.46, 'shell'], [0.64, 'shell'], [0.9, 'pump']],
+    scout: [[0, 'bolt'], [0.45, 'magin'], [0.85, 'bolt']],
+    awp:   [[0, 'bolt'], [0.25, 'magout'], [0.6, 'magin'], [0.88, 'bolt']],
+    ak47:  [[0, 'magout'], [0.5, 'magin'], [0.85, 'bolt']],
+    galil: [[0, 'magout'], [0.5, 'magin'], [0.85, 'bolt']],
+    m4a1:  [[0, 'magout'], [0.5, 'magin'], [0.88, 'slide']],
+    famas: [[0, 'magout'], [0.5, 'magin'], [0.88, 'slide']],
+  })[wid] || [[0, 'magout'], [0.55, 'magin'], [0.88, 'slide']];
+  plan.forEach(s => { const fn = () => { if (P.reloading) sfxMech(s[1], 0.13); }; if (s[0] === 0) fn(); else setTimeout(fn, dur * 1000 * s[0]); });
+}
+
+// ---- movement / body
+function sfxStep(vol, pan, dist) {
+  try {
+    const a = audio(); if (!a) return;
+    if (a.state === 'suspended') a.resume();
+    vol *= 2.3; const t = a.currentTime, out = mkOut(a, pan || 0, dist || 0, 0.05), f = rand(260, 420);
+    nz(a, t, 0.09, { type: 'lowpass', f: f * 2.4, f2: f * 0.6, q: 0.5, vol: vol * 1.7, out: out });                  // heel
+    tn(a, t, 0.08, { type: 'sine', f: rand(105, 140), f2: 58, vol: vol * 0.9, out: out });                          // weight
+    nz(a, t + 0.012, 0.06, { type: 'bandpass', f: rand(1500, 2300), q: 0.7, vol: vol * 0.3, out: out });            // sand crunch
+  } catch (e) {}
+}
+function sfxStepAt(x, z, vol) { const s = sfxSpace(x, z); sfxStep(vol * clamp(1 - s.d / 30, 0, 1), s.pan, s.d); }
+function sfxThudAt(x, z, vol) {
+  try {
+    const s = sfxSpace(x, z), a = audio(); if (!a) return;
+    const v = 1.8 * vol * clamp(1 - s.d / 55, 0, 1); if (v < 0.02) return;
+    const t = a.currentTime, out = mkOut(a, s.pan, s.d, 0.1);
+    tn(a, t, 0.22, { type: 'sine', f: 120, f2: 45, vol: v * 0.9, out: out });
+    nz(a, t, 0.18, { type: 'lowpass', f: 900, f2: 200, vol: v * 0.8, out: out });
+  } catch (e) {}
+}
+function sfxHurt() {
+  try {
+    const a = audio(); if (!a) return;
+    const t = a.currentTime, out = mkOut(a, 0, 0, 0.05);
+    tn(a, t, 0.2, { type: 'sine', f: 150, f2: 62, vol: 0.4, out: out });
+    nz(a, t, 0.14, { type: 'bandpass', f: 700, f2: 300, q: 1, vol: 0.22, out: out });
+  } catch (e) {}
+}
+function sfxHitmark(kill) {
+  try {
+    const a = audio(); if (!a) return;
+    const t = a.currentTime, out = mkOut(a, 0, 0, 0);
+    tn(a, t, 0.06, { type: 'sine', f: 1900, f2: 1400, vol: 0.12, out: out });
+    nz(a, t, 0.02, { type: 'bandpass', f: 3200, q: 2, vol: 0.1, out: out });
+    if (kill) { tn(a, t + 0.05, 0.14, { type: 'sine', f: 2500, f2: 2300, vol: 0.1, out: out }); tn(a, t, 0.18, { type: 'sine', f: 130, f2: 60, vol: 0.2, out: out }); }
+  } catch (e) {}
+}
+function sfxImpactAt(x, z, flesh) {
+  try {
+    const s = sfxSpace(x, z), a = audio(); if (!a) return;
+    const v = clamp(1 - s.d / 50, 0, 1) * (flesh ? 0.3 : 0.18); if (v < 0.01) return;
+    const t = a.currentTime, out = mkOut(a, s.pan, s.d, 0.06);
+    if (flesh) { tn(a, t, 0.1, { type: 'sine', f: 170, f2: 80, vol: v * 1.4, out: out }); nz(a, t, 0.07, { type: 'lowpass', f: 900, vol: v, out: out }); }
+    else {
+      nz(a, t, 0.05, { type: 'bandpass', f: 2600, q: 1.2, vol: v, out: out });
+      nz(a, t, 0.1, { type: 'lowpass', f: 700, vol: v * 0.6, out: out });
+      if (Math.random() < 0.3) tn(a, t + 0.02, 0.28, { type: 'sine', f: rand(2600, 3600), f2: rand(900, 1500), vol: v * 0.35, out: out, fd: 0.9 });   // ricochet whine
+    }
+  } catch (e) {}
+}
+function sfxKnife(hit) {
+  try {
+    const a = audio(); if (!a) return;
+    const t = a.currentTime, out = mkOut(a, 0, 0, 0.05);
+    if (!hit) nz(a, t, 0.16, { type: 'bandpass', f: 500, f2: 2600, q: 0.9, vol: 0.14, out: out, att: 0.05 });
+    else { nz(a, t, 0.06, { type: 'bandpass', f: 1800, q: 1, vol: 0.2, out: out }); tn(a, t, 0.1, { type: 'sine', f: 190, f2: 90, vol: 0.28, out: out }); }
+  } catch (e) {}
+}
+
+// ---- grenades / bomb
+function sfxWhoosh(vol) {
+  try { const a = audio(); if (!a) return; const t = a.currentTime, out = mkOut(a, 0, 0, 0.05); nz(a, t, 0.3, { type: 'bandpass', f: 300, f2: 1400, q: 0.8, vol: vol, out: out, att: 0.1 }); } catch (e) {}
+}
+function sfxBoom(x, z, big) {
+  try {
+    const s = x === undefined ? { d: 0, pan: 0 } : sfxSpace(x, z), a = audio(); if (!a) return;
+    const v = (big ? 1.5 : 1.0) * clamp(1 - s.d / (big ? 120 : 85), 0.06, 1);
+    if (a.state === 'suspended') a.resume();
+    const t = a.currentTime, out = mkOut(a, s.pan, s.d, 0.7, 0.6), L = big ? 1.8 : 1.0;
+    const sh = a.createWaveShaper(); sh.curve = driveCurve(3.4); sh.oversample = '2x'; sh.connect(out);
+    const pre = a.createGain(); pre.gain.value = 1.0; pre.connect(sh);
+    nz(a, t, 0.01, { type: 'highpass', f: 600, vol: v * 1.2, out: pre, att: 0.0002 });                                   // detonation click
+    nz(a, t, 0.14, { type: 'bandpass', f: 1800, q: 0.4, vol: v * 1.0, out: pre, att: 0.0005 });                          // crack
+    nz(a, t, L * 0.7, { type: 'lowpass', f: 4000, f2: 180, q: 0.5, vol: v * 1.1, out: pre, att: 0.003, buf: pinkBuffer });   // fireball roar
+    tn(a, t, L * 0.9, { type: 'sine', f: 75, f2: 34, vol: v * 1.3, out: pre, fd: 0.8 });                                 // sub boom
+    nz(a, t + 0.04, L * 1.6, { type: 'lowpass', f: 150, f2: 60, vol: v * 1.0, out: out, att: 0.07, buf: pinkBuffer });     // rumble
+    for (let i = 0; i < (big ? 10 : 6); i++) nz(a, t + 0.15 + Math.random() * L, 0.06, { type: 'bandpass', f: rand(1500, 4200), q: 1.2, vol: v * 0.1, out: out });   // falling debris
+  } catch (e) {}
+}
+function sfxFlashPop(x, z) {
+  try {
+    const s = sfxSpace(x, z), a = audio(); if (!a) return;
+    const v = clamp(1 - s.d / 70, 0.05, 1), t = a.currentTime, out = mkOut(a, s.pan, s.d, 0.5);
+    nz(a, t, 0.14, { type: 'highpass', f: 2200, vol: v * 0.9, out: out, att: 0.0005 });
+    nz(a, t, 0.3, { type: 'lowpass', f: 3000, f2: 400, vol: v * 0.6, out: out });
+    tn(a, t, 0.25, { type: 'sine', f: 140, f2: 50, vol: v * 0.7, out: out });
+  } catch (e) {}
+}
+function sfxRing(dur) {                                                                                                  // tinnitus after a flashbang
+  try {
+    const a = audio(); if (!a) return;
+    const t = a.currentTime, out = mkOut(a, 0, 0, 0), d = Math.min(Math.max(dur, 0.8), 4);
+    for (const f of [3150, 4720]) {
+      const o = a.createOscillator(); o.type = 'sine'; o.frequency.value = f;
+      const g = a.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.04, t + 0.05); g.gain.linearRampToValueAtTime(0.0001, t + d);
+      o.connect(g); g.connect(out); o.start(t); o.stop(t + d + 0.05);
+    }
+  } catch (e) {}
+}
+function sfxSmoke(x, z) {
+  try {
+    const s = sfxSpace(x, z), a = audio(); if (!a) return;
+    const v = clamp(1 - s.d / 60, 0.05, 1), t = a.currentTime, out = mkOut(a, s.pan, s.d, 0.3);
+    tn(a, t, 0.12, { type: 'sine', f: 180, f2: 70, vol: v * 0.4, out: out });
+    nz(a, t, 1.8, { type: 'bandpass', f: 5500, f2: 2200, q: 0.5, vol: v * 0.14, out: out, att: 0.08 });
+  } catch (e) {}
 }
 
 // ---------------------------------------------------------------- relvad
@@ -1141,9 +1401,12 @@ const WEAPONS = {
   awp: { id: 'awp', name: 'AWP', slot: 1, dmg: 115, rate: 1.45, auto: false, mag: 10, reserve: 30, spread: 0.0, unscoped: 0.09, recoil: 0.07, reload: 3.0, price: 4750, reward: 100, scope: true, moveSpeed: 0.82, tone: 1100, snd: 1.0, len: 0.8 },
 };
 const DIFFS = [
-  { name: 'EASY', acc: 0.55, react: 0.85, turn: 4.5, t: 3 },
-  { name: 'NORMAL', acc: 0.95, react: 0.5, turn: 6.5, t: 4 },
-  { name: 'HARD', acc: 1.35, react: 0.28, turn: 9, t: 5 },
+  // acc: aim skill | react: seconds before firing | turn: turn speed | t: enemy bots
+  // hs: headshot chance | vis: vision cone (dot product, lower = wider) | miss: how far misses land | mov: hit multiplier vs a moving target
+  // maxHit: hit chance cap | pauseM/gapM: pause between bursts / between shots | dmg: damage multiplier | nadeM: grenade delay multiplier | hpM: enemy health multiplier
+  { name: 'EASY', acc: 0.55, react: 0.85, turn: 4.5, t: 3, hs: 0.1, vis: 0.5, miss: 1.4, mov: 0.75, maxHit: 0.9, pauseM: 1, gapM: 1, dmg: 1, nadeM: 1, hpM: 1 },
+  { name: 'NORMAL', acc: 0.95, react: 0.5, turn: 6.5, t: 4, hs: 0.1, vis: 0.5, miss: 1.4, mov: 0.75, maxHit: 0.9, pauseM: 1, gapM: 1, dmg: 1, nadeM: 1, hpM: 1 },
+  { name: 'HARD', acc: 1.9, react: 0.16, turn: 13, t: 5, hs: 0.22, vis: 0.25, miss: 0.55, mov: 0.9, maxHit: 0.96, pauseM: 0.55, gapM: 0.85, dmg: 1.15, nadeM: 0.6, hpM: 1.2 },
 ];
 let diff = DIFFS[1];
 let playerTeam = 'CT';
@@ -1472,7 +1735,7 @@ function throwPlayerNade(id) {
   const sp = 17;
   spawnNade(id, P.x + d.x * 0.5, eyeY() - 0.15 + d.y * 0.5, P.z + d.z * 0.5, d.x * sp + P.vx * 0.6, d.y * sp + 2.5, d.z * sp + P.vz * 0.6, P);
   s.mag--; P.fireCd = 0.8; vmSwing = 0.3;
-  sfxGun(0.2, 900, 0.1, 0);
+  sfxMech('pin', 0.1); sfxWhoosh(0.12);
   if (id === 'he') speak('Fire in the hole');
   if (s.mag <= 0) {
     delete P.inv[P.cur]; P.cur = 0;
@@ -1498,7 +1761,7 @@ function explodeHE(n) {
   m.position.set(n.x, Math.max(n.y, 0.6), n.z); scene.add(m);
   blasts.push({ m: m, t: 0, R: 5, dur: 0.45 });
   for (let i = 0; i < 40; i++) { const a = rand(0, TAU), sp = rand(2, 9); spawnPart(n.x, Math.max(n.y, 0.3), n.z, Math.cos(a) * sp, rand(1, 6), Math.sin(a) * sp, i % 2 ? 0xffa030 : 0x666666, rand(0.4, 0.9)); }
-  sfxAt(n.x, n.z, 1.0, 900, 0.9);
+  sfxBoom(n.x, n.z, false);
   const dP = Math.hypot(P.x - n.x, P.z - n.z);
   if (dP < 25) { shakeT = Math.max(shakeT, 0.5); shakeM = Math.max(shakeM, clamp(0.3 - dP / 90, 0.03, 0.3)); }
   for (const e of entities()) {
@@ -1514,7 +1777,7 @@ function popFlash(n) {
   const m = new THREE.Mesh(GS(1), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9, depthWrite: false }));
   m.position.set(n.x, Math.max(n.y, 0.8), n.z); scene.add(m);
   blasts.push({ m: m, t: 0, R: 1.8, dur: 0.25 });
-  sfxAt(n.x, n.z, 0.8, 4000, 0.2);
+  sfxFlashPop(n.x, n.z);
   for (const e of entities()) {
     if (!e.alive) continue;
     const dx = n.x - e.x, dy = n.y - (e.y + 1.6), dz = n.z - e.z, dist = Math.hypot(dx, dy, dz);
@@ -1527,7 +1790,7 @@ function popFlash(n) {
     if (e.isPlayer) {
       P.blindT = Math.max(P.blindT, dur);
       flashW = 1;
-      sfxBeep(3200, Math.min(dur, 3), 0.05, 'sine');
+      sfxRing(dur);
     } else e.blindT = Math.max(e.blindT || 0, dur);
   }
 }
@@ -1541,7 +1804,7 @@ function popSmoke(n) {
     sm.puffs.push({ m: m, s: rand(1.6, 2.6) });
   }
   smokes.push(sm);
-  sfxAt(n.x, n.z, 0.4, 400, 0.4);
+  sfxSmoke(n.x, n.z);
 }
 function updateNades(dt) {
   for (let i = nades.length - 1; i >= 0; i--) {
@@ -1648,7 +1911,7 @@ function radio(bot, text) {
   radioCd[bot.team] = st_t + 3.5;
   const el = $('radio'), d = document.createElement('div');
   d.className = 'rl';
-  d.innerHTML = '<b>' + bot.name + '</b> (Radio): ' + text;
+  d.innerHTML = '' + bot.name + ' (Radio): ' + text;
   el.appendChild(d);
   setTimeout(() => { if (d.parentNode) d.parentNode.removeChild(d); }, 6000);
   while (el.children.length > 4) el.removeChild(el.firstChild);
@@ -1869,7 +2132,7 @@ function explodeBomb() {
     const a = rand(0, TAU), sp = rand(3, 16);
     spawnPart(x, 0.5, z, Math.cos(a) * sp, rand(1, 9), Math.sin(a) * sp, cols[i % 4], rand(0.6, 1.5));
   }
-  sfxGun(1.0, 700, 1.6, 0); sfxGun(1.0, 260, 1.8, 0);
+  sfxBoom(x, z, true);
   const dP = Math.hypot(P.x - x, P.z - z);
   shakeT = 1.4; shakeM = clamp(0.5 - dP / 80, 0.05, 0.5); flashW = clamp(1 - dP / 45, 0.15, 1);
   for (const e of entities()) {
@@ -1942,7 +2205,7 @@ class Bot {
     this.moving = false; this.visible = false; this.target = null; this.lastSeen = null; this.lastSeenT = 0;
   }
   spawn(x, z, yaw) {
-    this.x = x; this.z = z; this.y = 0; this.yaw = yaw; this.hp = 100; this.alive = true;
+    this.x = x; this.z = z; this.y = 0; this.yaw = yaw; this.hp = (typeof P !== 'undefined' && MODE !== 'train' && P.team && this.team !== P.team) ? Math.round(100 * diff.hpM) : 100; this.alive = true;
     this.mesh.visible = true; this.mesh.rotation.set(0, yaw, 0); this.mesh.position.set(x, 0, z);
     this.target = null; this.visible = false; this.lastSeen = null; this.lastSeenT = 0; this.alertT = 0;
     this.reactT = 0; this.fireCd = 0.5; this.burstLeft = 0; this.strafeDir = Math.random() < 0.5 ? -1 : 1;
@@ -1983,7 +2246,7 @@ class Bot {
     const D = Math.max(3, Math.hypot(dx, dz)), v = clamp(Math.sqrt(D * NADE_G * 1.05), 7, 22);
     const ux = dx / D, uz = dz / D, c45 = 0.7071;
     spawnNade(type, this.x + ux * 0.5, 1.5, this.z + uz * 0.5, ux * v * c45, v * c45, uz * v * c45, this);
-    sfxAt(this.x, this.z, 0.2, 900, 0.1);
+    sfxWhoosh(0.05);
   }
   tryNade(t, dist) {
     const N = this.nades;
@@ -2051,7 +2314,7 @@ class Bot {
       const dx = e.x - this.x, dz = e.z - this.z, dist = Math.hypot(dx, dz);
       if (dist > 75) continue;
       const dot = (dx * fx + dz * fz) / (dist || 1);
-      if (!(dot > 0.5 || dist < 5 || this.alertT > 0)) continue;
+      if (!(dot > diff.vis || dist < 5 || this.alertT > 0)) continue;
       if (!losClear(this.x, 1.55, this.z, e.x, e.y + 1.2, e.z)) continue;
       if (dist < bd) { bd = dist; best = e; }
     }
@@ -2088,21 +2351,21 @@ class Bot {
   shoot(t, dist) {
     const W = WEAPONS[this.weapon], F = BOT_FIRE[this.weapon];
     if (this.weapon === 'knife') {
-      if (dist < 2.6) { damageEntity(t, t.isPlayer ? F.dmgP : F.dmgB, this, false, 'knife'); sfxAt(this.x, this.z, 0.2, 800, 0.08); }
+      if (dist < 2.6) { damageEntity(t, t.isPlayer ? F.dmgP : F.dmgB, this, false, 'knife'); sfxThudAt(this.x, this.z, 0.25); }
       return;
     }
-    const chance = clamp((0.66 - dist * F.fall) * diff.acc * F.acc * (t.moving ? 0.75 : 1), 0.04, 0.9);
+    const chance = clamp((0.66 - dist * F.fall) * diff.acc * F.acc * (t.moving ? diff.mov : 1), 0.04, diff.maxHit);
     const hit = Math.random() < chance;
     const fx = -Math.sin(this.yaw), fz = -Math.cos(this.yaw);
     const sx = this.x + fx * 0.8, sy = 1.3, sz = this.z + fz * 0.8;
     let tx = t.x, ty = t.y + 1.15, tz = t.z;
-    if (!hit) { tx += rand(-1.4, 1.4); ty += rand(-0.8, 0.8); tz += rand(-1.4, 1.4); }
+    if (!hit) { tx += rand(-1.4, 1.4) * diff.miss; ty += rand(-0.8, 0.8) * diff.miss; tz += rand(-1.4, 1.4) * diff.miss; }
     tracer(sx, sy, sz, tx, ty, tz, 0xffb070);
     this.flashT = 0.05;
-    sfxAt(this.x, this.z, 0.35 + W.snd * 0.35, W.tone, 0.12 + W.snd * 0.16);
+    sfxAt(this.x, this.z, 0.35 + W.snd * 0.35, W.tone, 0.12 + W.snd * 0.16, false, W.id);
     if (hit) {
-      const head = Math.random() < 0.1;
-      let dmg = (t.isPlayer ? F.dmgP : F.dmgB) * rand(0.8, 1.2);
+      const head = Math.random() < diff.hs;
+      let dmg = (t.isPlayer ? F.dmgP : F.dmgB) * rand(0.8, 1.2) * diff.dmg;
       if (head) dmg *= (this.weapon === 'awp' ? 1.5 : 3);
       damageEntity(t, dmg, this, head, this.weapon);
     } else if (t.isPlayer) {
@@ -2187,14 +2450,14 @@ class Bot {
         if (this.reactT <= 0 && Math.abs(angDiff(this.yaw, want)) < 0.3) {
           if (this.burstLeft > 0) {
             const F = BOT_FIRE[this.weapon];
-            if (this.fireCd <= 0) { this.shoot(t, dist); this.burstLeft--; this.fireCd = this.burstLeft > 0 ? F.gap * rand(0.9, 1.2) : rand(F.pause[0], F.pause[1]); }
+            if (this.fireCd <= 0) { this.shoot(t, dist); this.burstLeft--; this.fireCd = this.burstLeft > 0 ? F.gap * rand(0.9, 1.2) * diff.gapM : rand(F.pause[0], F.pause[1]) * diff.pauseM; }
           } else if (this.fireCd <= 0) {
             const F = BOT_FIRE[this.weapon];
             this.burstLeft = F.burst[0] + Math.floor(rand(0, F.burst[1] - F.burst[0] + 1));
           }
         }
         this.nadeT -= dt;
-        if (this.nadeT <= 0) { this.nadeT = rand(2.5, 5); this.tryNade(t, dist); }
+        if (this.nadeT <= 0) { this.nadeT = rand(2.5, 5) * diff.nadeM; this.tryNade(t, dist); }
         this.strafeT -= dt;
         if (this.strafeT <= 0) { this.strafeDir = Math.random() < 0.25 ? 0 : (Math.random() < 0.5 ? -1 : 1); this.strafeT = rand(0.5, 1.6); }
         const rx = Math.cos(this.yaw), rz = -Math.sin(this.yaw);
@@ -2240,7 +2503,7 @@ class Bot {
         this.lx = this.x; this.lz = this.z; this.stuckT = 0;
       }
       this.walkPh += dt * (this.moving ? 9 : 0);
-      if (this.moving) { this.stepT = (this.stepT || 0) - dt; if (this.stepT <= 0) { this.stepT = 0.36; sfxAt(this.x, this.z, 0.1, 700, 0.07, true); } }
+      if (this.moving) { this.stepT = (this.stepT || 0) - dt; if (this.stepT <= 0) { this.stepT = 0.36; sfxStepAt(this.x, this.z, 0.1); } }
     }
     const sw = this.moving ? Math.sin(this.walkPh) * 0.7 : 0;
     U.legL.rotation.x = sw; U.legR.rotation.x = -sw;
@@ -2295,7 +2558,7 @@ function damageEntity(t, dmg, att, head, wid) {
       $('arrow').style.transform = 'rotate(' + (-(angDiff(P.yaw, ang))) + 'rad)';
       $('arrow').style.opacity = 1;
     }
-    sfxBeep(220, 0.08, 0.08, 'sawtooth');
+    sfxHurt();
     if (P.hp <= 0) { P.hp = 0; killEntity(P, att, head, wid); return true; }
     return false;
   }
@@ -2325,7 +2588,7 @@ function killEntity(v, att, head, wid) {
     P.zoom = 0; trigger = false; buyOpen = false; $('buy').style.display = 'none';
     specIdx = 0;
   } else {
-    sfxAt(v.x, v.z, 0.4, 700, 0.3);
+    sfxThudAt(v.x, v.z, 0.5);
     bloodSplat(v.x, v.z, 1.6);
     sparks(v.x, v.y + 1, v.z, 0, 1, 0, 0xaa1111, 14);
   }
@@ -2458,10 +2721,11 @@ function W_pistol(g, M, L, H, kind) {
   const top = dg ? 0.058 : 0.05, w = dg ? 0.044 : 0.032, fR = dg ? -0.125 : -0.105, fF = dg ? 0.2 : (gl ? 0.17 : 0.178);
   gX(g, [[fR, 0.011], [fR, top], [fF - (gl ? 0 : 0.013), top], [fF, top - (gl ? 0 : 0.01)], [fF, 0.011]], w, sMat, 0, 0, 0);          // slide
   gX(g, [[0.0, 0.012], [fF - 0.015, 0.012], [fF - 0.015, -0.014], [0.0, -0.014]], w - 0.004, fMat, 0, 0, 0);                         // dust cover / frame
-  gX(g, [[fR, 0.012], [0.02, 0.012], [0.026, -0.022], [0.004, -0.042], [-0.03, -0.145], [fR + 0.0, -0.15], [fR - 0.012, -0.045]], w + 0.002, fMat, 0, 0, 0);   // grip
-  gB(g, 0.014, 0.008, 0.072, fMat, 0, -0.05, 0.03); gB(g, 0.014, 0.036, 0.008, fMat, 0, -0.031, 0.067);                             // trigger guard
+  const gRt = fR + 0.004, gFt = fR + (dg ? 0.09 : 0.082), rake = dg ? 0.04 : 0.055;
+  gX(g, [[gRt, 0.012], [gFt, 0.012], [gFt + 0.006, -0.04], [gFt - rake, -0.15], [gRt - rake, -0.15]], w + 0.002, fMat, 0, 0, 0);   // grip (compact, raked back)
+  gB(g, 0.014, 0.008, 0.078 + (0.067 - gFt - 0.006), fMat, 0, -0.05, (gFt + 0.006 + 0.071) / 2); gB(g, 0.014, 0.036, 0.008, fMat, 0, -0.031, 0.067);                             // trigger guard
   gX(g, [[0.012, -0.012], [0.022, -0.012], [0.017, -0.036], [0.009, -0.036]], 0.01, M.steel, 0, 0, 0);                                // trigger
-  gB(g, w + 0.004, 0.012, 0.078, M.rubber, 0, -0.156, -0.07);                                                                       // magazine base
+  gB(g, w + 0.004, 0.012, (gFt - rake) - (gRt - rake) + 0.008, M.rubber, 0, -0.156, ((gFt - rake) + (gRt - rake)) / 2);                                                                       // magazine base
   gSights(g, M, fF - 0.012, fR + 0.01, top + 0.006);
   gB(g, 0.004, 0.02, 0.055, M.dark, w / 2, top - 0.012, 0.03);                                                                      // ejection port
   gB(g, 0.011, 0.014, 0.012, M.steel, 0, top, fR - 0.003);                                                                          // hammer
@@ -2474,7 +2738,7 @@ function W_pistol(g, M, L, H, kind) {
   if (!L) {
     for (let i = 0; i < 5; i++) { gB(g, w + 0.0012, top - 0.016, 0.0035, M.dark, 0, 0.03, fR + 0.014 + i * 0.009); }
     for (let i = 0; i < 4; i++) { gB(g, w + 0.0012, top - 0.016, 0.0035, M.dark, 0, 0.03, fF - 0.07 + i * 0.009); }
-    for (const sx of [-1, 1]) for (let i = 0; i < 6; i++) gB(g, 0.003, 0.0035, 0.07, M.rubber, sx * (w + 0.002) / 2, -0.055 - i * 0.015, -0.05 - i * 0.003);
+    for (const sx of [-1, 1]) for (let i = 0; i < 6; i++) gB(g, 0.003, 0.0035, gFt - gRt - 0.012, M.rubber, sx * (w + 0.002) / 2, -0.055 - i * 0.015, (gFt + gRt) / 2 - rake * ((0.055 + i * 0.015 + 0.012) / 0.162));
     gB(g, 0.004, 0.006, 0.03, M.steel, -w / 2, 0.004, 0.02);
     if (gl) { gB(g, 0.012, 0.01, 0.07, M.blued, 0, -0.016, 0.1); }
   }
@@ -2531,91 +2795,118 @@ function Sp_rivet(g, M, x, y, f) { return part(g, GC(0.0045, 0.0045, 0.004), M.s
 
 // ---------------- M4A1
 function W_m4(g, M, L, H) {
-  gX(g, [[-0.2, 0.0], [-0.2, 0.05], [0.18, 0.05], [0.18, 0.0]], 0.05, M.blued, 0, 0, 0);                                           // upper receiver
-  gX(g, [[-0.2, -0.062], [0.16, -0.062], [0.16, 0.0], [-0.2, 0.0]], 0.052, M.blued, 0, 0, 0);                                      // lower receiver
-  gX(g, [[0.03, -0.062], [0.12, -0.062], [0.134, -0.088], [0.016, -0.088]], 0.056, M.blued, 0, 0, 0);                                // magwell
-  gX(g, [[-0.17, 0.05], [-0.15, 0.09], [-0.1, 0.108], [0.08, 0.108], [0.1, 0.09], [0.1, 0.05]], 0.034, M.blued, 0, 0, 0);          // carry handle
-  gX(g, [[0.5, 0.03], [0.52, 0.078], [0.54, 0.078], [0.56, 0.03]], 0.02, M.blued, 0, 0, 0);                                         // front sight tower
-  gB(g, 0.004, 0.032, 0.004, M.steel, 0, 0.09, 0.53);
-  gCf(g, 0.036, 0.034, 0.3, M.poly, 0, 0.012, 0.36);                                                                                 // round handguard
-  gCf(g, 0.011, 0.011, 0.26, M.steel, 0, 0.012, 0.62);                                                                               // barrel
-  gCf(g, 0.0165, 0.0165, 0.075, M.blued, 0, 0.012, 0.77);                                                                           // flash hider
-  gX(g, [[-0.04, -0.06], [-0.085, -0.06], [-0.118, -0.165], [-0.078, -0.172]], 0.036, M.poly, 0, 0, 0);                             // pistol grip
-  gB(g, 0.014, 0.008, 0.075, M.blued, 0, -0.07, 0.0); gB(g, 0.014, 0.042, 0.008, M.blued, 0, -0.092, 0.04);                          // trigger guard
-  gCf(g, 0.022, 0.022, 0.2, M.alu, 0, -0.012, -0.3);                                                                                 // buffer tube
-  gX(g, [[-0.2, 0.03], [-0.2, -0.062], [-0.36, -0.074], [-0.5, -0.09], [-0.5, 0.0], [-0.36, 0.034]], 0.04, M.poly, 0, 0, 0);       // stock
-  gB(g, 0.044, 0.1, 0.014, M.rubber, 0, -0.045, -0.505);
-  gX(g, [[0.03, -0.088], [0.118, -0.088], [0.128, -0.2], [0.14, -0.268], [0.068, -0.268], [0.045, -0.2]], 0.034, M.steel, 0, 0, 0);  // STANAG magazine
-  gB(g, 0.038, 0.01, 0.078, M.rubber, 0, -0.27, 0.104);
+  const AX = 0.022;                                                                                                          // bore axis height
+  gX(g, [[-0.17, 0.0], [-0.17, -0.04], [-0.1, -0.05], [0.02, -0.05], [0.02, -0.085], [0.13, -0.085], [0.13, -0.05], [0.2, -0.04], [0.2, 0.0]], 0.046, M.blued, 0, 0, 0);   // lower receiver + magwell
+  gX(g, [[-0.17, 0.0], [-0.17, 0.052], [0.2, 0.052], [0.2, 0.0]], 0.044, M.blued, 0, 0, 0);                                  // upper receiver
+  gX(g, [[-0.16, 0.052], [-0.135, 0.1], [-0.1, 0.108], [-0.07, 0.108], [-0.075, 0.052]], 0.03, M.blued, 0, 0, 0);            // carry handle: rear leg
+  gX(g, [[0.02, 0.052], [0.025, 0.108], [0.075, 0.108], [0.095, 0.1], [0.1, 0.052]], 0.03, M.blued, 0, 0, 0);                // carry handle: front leg
+  gB(g, 0.03, 0.014, 0.2, M.blued, 0, 0.101, 0.0);                                                                           // carry handle: bar
+  gCf(g, 0.034, 0.032, 0.3, M.poly, 0, 0.018, 0.35);                                                                         // round handguard
+  gCf(g, 0.038, 0.038, 0.012, M.alu, 0, 0.018, 0.2);                                                                         // delta ring
+  gCf(g, 0.0105, 0.0105, 0.28, M.steel, 0, AX, 0.63);                                                                        // barrel
+  gX(g, [[0.5, 0.03], [0.51, 0.075], [0.535, 0.075], [0.545, 0.03]], 0.02, M.blued, 0, 0, 0);                                // front sight tower
+  gB(g, 0.004, 0.026, 0.004, M.steel, 0, 0.088, 0.522);
+  gCf(g, 0.0165, 0.0165, 0.075, M.blued, 0, AX, 0.795);                                                                      // flash hider
+  gCf(g, 0.021, 0.021, 0.2, M.alu, 0, 0.012, -0.27);                                                                         // buffer tube
+  gX(g, [[-0.3, 0.034], [-0.52, 0.028], [-0.52, -0.082], [-0.4, -0.064], [-0.3, -0.042]], 0.038, M.poly, 0, 0, 0);            // collapsed stock
+  gB(g, 0.042, 0.116, 0.014, M.rubber, 0, -0.027, -0.527);                                                                    // butt pad
+  gX(g, [[-0.06, -0.045], [-0.115, -0.045], [-0.152, -0.165], [-0.105, -0.172]], 0.036, M.poly, 0, 0, 0);                    // pistol grip
+  gB(g, 0.014, 0.008, 0.09, M.blued, 0, -0.07, -0.025);                                                                      // trigger guard
+  gB(g, 0.006, 0.026, 0.008, M.steel, 0, -0.052, -0.025);                                                                    // trigger
+  gX(g, [[0.035, -0.08], [0.12, -0.08], [0.132, -0.17], [0.15, -0.262], [0.082, -0.268], [0.07, -0.17]], 0.032, M.steel, 0, 0, 0);   // STANAG magazine
+  gB(g, 0.036, 0.01, 0.075, M.rubber, 0, -0.268, 0.116);
   if (!L) {
-    gTeeth(g, M.poly, -0.16, 0.16, 0.052, 0.024, 0.013, 0.008);                                                                      // top rail
-    for (let i = 0; i < 6; i++) gCf(g, 0.0365, 0.0365, 0.004, M.blued, 0, 0.012, 0.23 + i * 0.045);                                  // heat shield rings
-    gB(g, 0.004, 0.026, 0.062, M.dark, 0.0265, 0.025, 0.02);                                                                         // ejection port
-    gB(g, 0.03, 0.012, 0.024, M.steel, 0, 0.054, -0.18);                                                                             // charging handle
-    gCf(g, 0.008, 0.008, 0.02, M.steel, 0.034, 0.024, -0.02);                                                                        // forward assist
-    gB(g, 0.012, 0.03, 0.03, M.steel, 0.032, 0.02, 0.1);
-    for (let i = 0; i < 3; i++) gB(g, 0.003, 0.014, 0.004, M.dark, 0.0335, 0.012, 0.76 + i * 0.01);                                  // hider slots
-    for (let i = 0; i < 5; i++) gB(g, 0.036, 0.004, 0.034, M.blued, 0, -0.12 - i * 0.03, 0.082 + i * 0.012, 0.1);                      // magazine ribs
-    gB(g, 0.004, 0.012, 0.01, M.white, 0.0, 0.084, -0.09);
+    gTeeth(g, M.poly, -0.06, 0.2, 0.054, 0.024, 0.013, 0.006);                                                               // top rail on the upper receiver
+    for (let i = 0; i < 5; i++) gCf(g, 0.0345, 0.0345, 0.004, M.blued, 0, 0.018, 0.24 + i * 0.05);                           // heat shield rings
+    for (let i = 0; i < 6; i++) for (const sx of [-1, 1]) gB(g, 0.004, 0.01, 0.018, M.dark, sx * 0.0335, 0.018, 0.23 + i * 0.045);   // handguard vents
+    gB(g, 0.004, 0.026, 0.062, M.dark, 0.023, 0.028, 0.02);                                                                  // ejection port
+    gB(g, 0.03, 0.012, 0.024, M.steel, 0, 0.058, -0.16);                                                                     // charging handle
+    gCf(g, 0.008, 0.008, 0.02, M.steel, 0.027, 0.022, -0.04);                                                                // forward assist
+    gB(g, 0.012, 0.016, 0.03, M.steel, 0.026, -0.03, 0.06);                                                                  // mag release
+    for (let i = 0; i < 3; i++) gB(g, 0.003, 0.014, 0.004, M.dark, 0.0175, AX, 0.79 + i * 0.012);                           // hider slots
+    for (let i = 0; i < 5; i++) gB(g, 0.034, 0.004, 0.03, M.blued, 0, -0.12 - i * 0.03, 0.095 + i * 0.012, 0.1);             // magazine ribs
+    for (let i = 0; i < 5; i++) gB(g, 0.038, 0.003, 0.03, M.dark, 0, -0.09 - i * 0.015, -0.1 - i * 0.008);                    // grip lines
+    gCf(g, 0.011, 0.011, 0.014, M.steel, 0, 0.106, -0.13); gCf(g, 0.004, 0.004, 0.016, M.dark, 0, 0.106, -0.13);              // aperture drum
+    gRing(g, M, 0, -0.07, -0.2); gRing(g, M, 0, 0.022, 0.5);                                                                   // sling loops
   }
   if (H) {
-    H.hand(0, -0.095, -0.08, 1.3); H.arm(0, -0.095, -0.08, 0.3, -0.55, 0.8);
-    H.hand(0, -0.02, 0.38, 0.95); H.arm(0, -0.02, 0.38, -0.4, -0.3, 0.85);
+    H.hand(0, -0.1, -0.11, 1.3); H.arm(0, -0.1, -0.11, 0.3, -0.55, 0.8);
+    H.hand(0, -0.03, 0.36, 0.95); H.arm(0, -0.03, 0.36, -0.4, -0.3, 0.85);
   }
-  return { tip: 0.82, tipY: 0.012 };
+  return { tip: 0.83, tipY: AX };
 }
+function gRing(g, M, x, y, f) { return gTorus(g, 0.01, 0.0025, M.steel, x, y, -f, 0, Math.PI / 2, 0); }
 
-// ---------------- FAMAS (bullpup)
+// ---------------- FAMAS (bullpup: open carry-handle arch, big trigger guard, magazine behind the grip)
 function W_famas(g, M, L, H) {
-  gX(g, [[-0.52, -0.05], [-0.52, 0.07], [-0.1, 0.076], [0.1, 0.062], [0.3, 0.042], [0.3, -0.042], [0.1, -0.06], [-0.1, -0.07]], 0.052, M.olive, 0, 0, 0);   // body
-  gX(g, [[-0.3, 0.07], [-0.25, 0.118], [0.0, 0.128], [0.12, 0.102], [0.14, 0.066]], 0.036, M.olive, 0, 0, 0);                         // carry handle
-  gX(g, [[0.2, -0.04], [0.34, -0.03], [0.34, -0.1], [0.24, -0.105]], 0.05, M.olive, 0, 0, 0);                                          // foregrip
-  gX(g, [[0.03, -0.06], [-0.03, -0.06], [-0.055, -0.17], [0.0, -0.178]], 0.036, M.poly, 0, 0, 0);                                     // pistol grip
-  gB(g, 0.014, 0.008, 0.1, M.poly, 0, -0.075, -0.09); gB(g, 0.014, 0.04, 0.008, M.poly, 0, -0.056, 0.05);                              // big trigger guard
-  gX(g, [[-0.22, -0.07], [-0.12, -0.07], [-0.12, -0.2], [-0.2, -0.212]], 0.034, M.steel, 0, 0, 0);                                    // magazine behind the grip
-  gCf(g, 0.02, 0.015, 0.22, M.blued, 0, 0.0, 0.42);                                                                                    // barrel
-  gCf(g, 0.018, 0.018, 0.07, M.blued, 0, 0.0, 0.58);
-  gX(g, [[0.55, 0.0], [0.57, 0.06], [0.585, 0.06], [0.6, 0.0]], 0.016, M.blued, 0, 0, 0);                                              // front sight
-  gB(g, 0.05, 0.1, 0.02, M.rubber, 0, 0.0, -0.53);                                                                                      // butt pad
+  const AX = 0.012;
+  const body = M.steel, dark = M.poly;
+  gX(g, [[-0.37, 0.036], [0.12, 0.03], [0.3, 0.02], [0.3, -0.05], [0.2, -0.1], [0.1, -0.085], [-0.1, -0.075], [-0.33, -0.075]], 0.046, body, 0, 0, 0);   // receiver + forend housing
+  gX(g, [[-0.5, 0.04], [-0.37, 0.036], [-0.34, -0.075], [-0.38, -0.12], [-0.5, -0.125]], 0.044, dark, 0, 0, 0);               // butt stock
+  gB(g, 0.046, 0.016, 0.1, dark, 0, 0.05, -0.43);                                                                            // cheek step
+  gB(g, 0.05, 0.14, 0.02, M.rubber, 0, -0.04, -0.508);                                                                       // butt pad
+  // open carry handle: rear leg, top bar, front slope (the gap underneath is visible, as on the real rifle)
+  gX(g, [[-0.28, 0.03], [-0.25, 0.092], [-0.2, 0.094], [-0.21, 0.03]], 0.03, dark, 0, 0, 0);
+  gB(g, 0.03, 0.02, 0.38, dark, 0, 0.084, -0.05);
+  gX(g, [[0.08, 0.03], [0.1, 0.094], [0.14, 0.09], [0.19, 0.022]], 0.03, dark, 0, 0, 0);
+  gB(g, 0.012, 0.014, 0.05, M.blued, 0, 0.1, -0.2);                                                                          // rear sight
+  // pistol grip, large trigger guard, trigger
+  gX(g, [[0.0, -0.07], [-0.06, -0.07], [-0.095, -0.165], [-0.045, -0.172]], 0.036, dark, 0, 0, 0);
+  gB(g, 0.014, 0.008, 0.13, dark, 0, -0.12, 0.035); gB(g, 0.014, 0.04, 0.008, dark, 0, -0.1, 0.1);
+  gB(g, 0.006, 0.028, 0.008, M.steel, 0, -0.098, 0.04);
+  // magazine behind the grip
+  gX(g, [[-0.2, -0.07], [-0.29, -0.07], [-0.312, -0.19], [-0.242, -0.196]], 0.034, M.blued, 0, 0, 0);
+  gB(g, 0.038, 0.01, 0.075, M.rubber, 0, -0.196, -0.277);
+  // barrel, gas block, front sight, bayonet
+  gCf(g, 0.014, 0.014, 0.3, M.blued, 0, AX, 0.45);                                                                           // barrel
+  gCf(g, 0.019, 0.019, 0.05, dark, 0, AX, 0.3);                                                                              // gas block
+  gX(g, [[0.29, 0.02], [0.3, 0.07], [0.32, 0.07], [0.33, 0.02]], 0.014, M.blued, 0, 0, 0);                                    // front sight post
+  gCf(g, 0.019, 0.019, 0.03, M.blued, 0, AX, 0.585);                                                                         // muzzle
+  gX(g, [[0.32, -0.02], [0.5, -0.016], [0.6, -0.022], [0.5, -0.03], [0.32, -0.032]], 0.008, M.silver, 0, 0, 0);                // bayonet blade
   if (!L) {
-    gB(g, 0.006, 0.014, 0.02, M.dark, 0, 0.12, -0.12);
-    for (const sx of [-0.035, 0.035]) gCf(g, 0.005, 0.005, 0.2, M.blued, sx, -0.06, 0.4);                                              // folded bipod
-    gB(g, 0.004, 0.026, 0.07, M.dark, 0.027, 0.03, -0.1);
-    for (let i = 0; i < 5; i++) gB(g, 0.054, 0.004, 0.004, M.blued, 0, 0.03, 0.05 + i * 0.03);
-    gTeeth(g, M.blued, -0.28, 0.1, 0.13, 0.02, 0.016, 0.006);
+    for (let i = 0; i < 5; i++) gB(g, 0.048, 0.004, 0.004, M.dark, 0, 0.0, 0.14 + i * 0.03);                                  // forend grooves
+    gB(g, 0.004, 0.026, 0.07, M.dark, 0.024, 0.01, -0.12);                                                                   // ejection port
+    gB(g, 0.012, 0.012, 0.03, M.steel, 0.026, -0.03, -0.1);                                                                  // selector
+    gRing(g, M, 0, -0.1, 0.25);
+    for (let i = 0; i < 5; i++) gB(g, 0.036, 0.003, 0.03, M.dark, 0, -0.1 - i * 0.015, -0.06 - i * 0.008);                    // grip lines
   }
   if (H) {
-    H.hand(0, -0.1, -0.0, 1.3); H.arm(0, -0.1, -0.0, 0.3, -0.55, 0.8);
-    H.hand(0, -0.04, 0.3, 0.95); H.arm(0, -0.04, 0.3, -0.4, -0.3, 0.85);
+    H.hand(0, -0.1, -0.035, 1.3); H.arm(0, -0.1, -0.035, 0.3, -0.55, 0.8);
+    H.hand(0, -0.05, 0.22, 0.95); H.arm(0, -0.05, 0.22, -0.4, -0.3, 0.85);
   }
-  return { tip: 0.66, tipY: 0.0 };
+  return { tip: 0.66, tipY: AX };
 }
 
 // ---------------- MP5
 function W_mp5(g, M, L, H) {
-  gCf(g, 0.036, 0.036, 0.4, M.blued, 0, 0.0, 0.0);                                                                                     // receiver tube
-  gX(g, [[0.16, -0.04], [0.4, -0.034], [0.4, 0.03], [0.16, 0.036]], 0.07, M.poly, 0, 0, 0);                                           // handguard
-  gCf(g, 0.012, 0.012, 0.14, M.steel, 0, 0.0, 0.47);                                                                                   // barrel nose
-  gCf(g, 0.02, 0.02, 0.012, M.blued, 0, 0.0, 0.52); gB(g, 0.005, 0.03, 0.005, M.steel, 0, 0.03, 0.52);                               // front sight ring
-  gCf(g, 0.014, 0.014, 0.03, M.blued, 0, 0.048, -0.06); gB(g, 0.006, 0.01, 0.006, M.white, 0, 0.062, -0.06);                         // drum sight
-  gX(g, [[-0.12, -0.034], [0.06, -0.034], [0.06, -0.066], [-0.12, -0.066]], 0.04, M.poly, 0, 0, 0);                                   // trigger group
-  gX(g, [[-0.07, -0.06], [-0.13, -0.06], [-0.16, -0.17], [-0.1, -0.175]], 0.036, M.poly, 0, 0, 0);                                    // pistol grip
-  gB(g, 0.014, 0.008, 0.07, M.poly, 0, -0.068, 0.0); gB(g, 0.014, 0.04, 0.008, M.poly, 0, -0.088, 0.04);
+  gCf(g, 0.034, 0.034, 0.4, M.blued, 0, 0.006, -0.02);                                                                         // receiver tube
+  gX(g, [[-0.12, -0.03], [0.05, -0.03], [0.05, -0.066], [-0.12, -0.066]], 0.044, M.poly, 0, 0, 0);                          // trigger group
+  gX(g, [[0.15, -0.038], [0.4, -0.034], [0.4, 0.036], [0.15, 0.04]], 0.064, M.poly, 0, 0, 0);                                // handguard
+  gCf(g, 0.012, 0.012, 0.16, M.steel, 0, 0.004, 0.47);                                                                         // barrel nose
+  gCf(g, 0.02, 0.02, 0.012, M.blued, 0, 0.004, 0.545); gB(g, 0.005, 0.03, 0.005, M.steel, 0, 0.034, 0.545);                  // front sight ring + post
+  gCf(g, 0.014, 0.014, 0.03, M.blued, 0, 0.05, -0.06);                                                                         // rear drum sight
+  gX(g, [[-0.07, -0.06], [-0.125, -0.06], [-0.16, -0.17], [-0.105, -0.178]], 0.036, M.poly, 0, 0, 0);                         // pistol grip
+  gB(g, 0.014, 0.008, 0.1, M.poly, 0, -0.07, -0.01); gB(g, 0.014, 0.036, 0.008, M.poly, 0, -0.088, 0.04);                    // trigger guard
+  gB(g, 0.006, 0.026, 0.008, M.steel, 0, -0.052, -0.02);                                                                       // trigger
   gX(g, [[0.04, -0.062], [0.1, -0.062], [0.125, -0.12], [0.15, -0.2], [0.168, -0.285], [0.1, -0.29], [0.085, -0.2], [0.065, -0.12]], 0.034, M.blued, 0, 0, 0);   // curved magazine
-  for (const sx of [-0.022, 0.022]) gCf(g, 0.0075, 0.0075, 0.3, M.blued, sx, -0.005, -0.31);                                           // retracted wire stock
-  gB(g, 0.046, 0.09, 0.012, M.poly, 0, -0.03, -0.46);
+  for (const sx of [-0.026, 0.026]) gCf(g, 0.009, 0.009, 0.26, M.blued, sx, 0.0, -0.35);                                      // stock rods
+  gB(g, 0.05, 0.1, 0.014, M.poly, 0, -0.01, -0.487);                                                                           // butt plate
+  gB(g, 0.052, 0.012, 0.03, M.poly, 0, 0.044, -0.47); gB(g, 0.052, 0.012, 0.03, M.poly, 0, -0.064, -0.47);                    // butt plate flanges
   if (!L) {
-    for (let i = 0; i < 6; i++) gB(g, 0.072, 0.004, 0.006, M.blued, 0, 0.0, 0.2 + i * 0.03);                                           // handguard ridges
-    gB(g, 0.012, 0.012, 0.03, M.steel, 0.038, 0.01, -0.08);                                                                            // cocking handle
-    gB(g, 0.004, 0.02, 0.06, M.dark, 0.036, 0.0, 0.05);
-    gB(g, 0.012, 0.012, 0.03, M.steel, -0.03, -0.05, -0.06);
+    for (let i = 0; i < 6; i++) gB(g, 0.068, 0.004, 0.006, M.blued, 0, 0.0, 0.2 + i * 0.03);                                 // handguard ridges
+    gB(g, 0.012, 0.012, 0.03, M.steel, 0.036, 0.016, -0.08);                                                                  // cocking handle
+    gB(g, 0.004, 0.02, 0.06, M.dark, 0.034, 0.006, 0.05);                                                                     // ejection port
+    gB(g, 0.012, 0.012, 0.03, M.steel, -0.036, -0.045, -0.06);                                                                // selector
+    gB(g, 0.074, 0.008, 0.012, M.blued, 0, -0.03, 0.17);                                                                      // hand stop
     for (let i = 0; i < 4; i++) gB(g, 0.036, 0.004, 0.05, M.rubber, 0, -0.12 - i * 0.04, 0.09 + i * 0.026, 0.2);
+    for (let i = 0; i < 5; i++) gB(g, 0.038, 0.003, 0.03, M.dark, 0, -0.09 - i * 0.015, -0.085 - i * 0.008);
+    gRing(g, M, 0, -0.03, -0.46);
   }
   if (H) {
-    H.hand(0, -0.095, -0.09, 1.3); H.arm(0, -0.095, -0.09, 0.3, -0.55, 0.8);
+    H.hand(0, -0.095, -0.11, 1.3); H.arm(0, -0.095, -0.11, 0.3, -0.55, 0.8);
     H.hand(0, -0.03, 0.28, 0.95); H.arm(0, -0.03, 0.28, -0.4, -0.3, 0.85);
   }
-  return { tip: 0.6, tipY: 0.0 };
+  return { tip: 0.6, tipY: 0.004 };
 }
 
 // ---------------- M3 pump shotgun
@@ -2643,37 +2934,110 @@ function W_m3(g, M, L, H) {
 function gBead(g, M) { gSp(g, 0.0045, M.white, 0, 0.042, 0.76); }
 
 // ---------------- sniper rifles: AWP / Scout
+// One continuous stock runs under the action, the barrel starts right at the receiver face and the scope is bolted to the receiver.
 function W_sniper(g, M, L, H, scout) {
   const stock = scout ? M.wood : M.olive;
-  gX(g, [[-0.5, 0.02], [-0.5, -0.115], [-0.3, -0.095], [-0.1, -0.065], [0.22, -0.056], [0.34, -0.046], [0.34, 0.0], [0.0, 0.048], [-0.3, 0.058]], 0.05, stock, 0, 0, 0);   // stock
-  gX(g, [[-0.12, 0.0], [-0.12, 0.052], [0.14, 0.052], [0.14, 0.0]], 0.044, M.blued, 0, 0, 0);                                         // receiver
-  gCf(g, 0.016, 0.013, scout ? 0.5 : 0.58, M.blued, 0, 0.026, scout ? 0.6 : 0.64);                                                    // barrel
-  if (!scout) gCf(g, 0.02, 0.02, 0.09, M.blued, 0, 0.026, 0.97);                                                                       // muzzle brake
-  else gCf(g, 0.016, 0.016, 0.03, M.blued, 0, 0.026, 0.88);
-  const sf = scout ? 0.12 : 0.05, sl = scout ? 0.26 : 0.34;
-  gCf(g, 0.024, 0.024, sl, M.blued, 0, 0.098, sf);                                                                                      // scope tube
-  gCf(g, 0.034, 0.034, 0.07, M.blued, 0, 0.098, sf + sl / 2 + 0.03);                                                                   // objective bell
-  gCf(g, 0.03, 0.03, 0.05, M.blued, 0, 0.098, sf - sl / 2 - 0.02);                                                                      // eyepiece
-  gCf(g, 0.031, 0.031, 0.004, M.glass, 0, 0.098, sf + sl / 2 + 0.067); gCf(g, 0.026, 0.026, 0.004, M.glass, 0, 0.098, sf - sl / 2 - 0.046);
-  gB(g, 0.02, 0.04, 0.025, M.blued, 0, 0.062, sf + 0.08); gB(g, 0.02, 0.04, 0.025, M.blued, 0, 0.062, sf - 0.08);                     // mounts
-  gB(g, 0.032, 0.07, 0.1, M.blued, 0, -0.07, 0.04);                                                                                     // magazine
-  gB(g, 0.014, 0.008, 0.07, M.blued, 0, -0.056, 0.0); gB(g, 0.014, 0.036, 0.008, M.blued, 0, -0.04, 0.036);                           // trigger guard
-  gB(g, 0.046, 0.12, 0.014, M.rubber, 0, -0.05, -0.505);
-  gX(g, [[-0.2, 0.058], [-0.12, 0.058], [-0.12, 0.085], [-0.22, 0.075]], 0.04, M.poly, 0, 0, 0);                                       // cheek rest
-  gCh(g, 0.006, 0.075, M.steel, 0.052, 0.03, -0.05); gSp(g, 0.014, M.blued, 0.092, 0.03, -0.05);                                      // bolt handle
-  if (!L) {
-    gCv(g, 0.013, 0.013, 0.035, M.steel, 0, 0.126, sf);                                                                                // elevation turret
-    gCh(g, 0.013, 0.035, M.steel, 0.034, 0.098, sf);                                                                                  // windage turret
-    for (const sx of [-0.04, 0.04]) gB(g, 0.008, 0.1, 0.008, M.alu, sx, -0.07, 0.55, 0.35);                                           // folded bipod
-    if (!scout) for (let i = 0; i < 3; i++) for (const sx of [-1, 1]) gB(g, 0.004, 0.012, 0.01, M.dark, sx * 0.0205, 0.026, 0.95 + i * 0.022);
-    gB(g, 0.004, 0.02, 0.07, M.dark, 0.0235, 0.03, 0.0);
-    gB(g, 0.004, 0.01, 0.12, M.steel, 0.024, 0.02, -0.06);
+  const cap = M.dark;
+  const AX = 0.028;                                                                                                          // bore axis height
+
+  // ---------- STOCK (single profile: butt -> cheek -> action bed -> forend) ----------
+  if (scout) {
+    gX(g, [[-0.5, 0.02], [-0.44, 0.044], [-0.34, 0.05], [-0.22, 0.04], [-0.14, 0.018], [0.2, 0.018], [0.24, 0.012], [0.56, 0.012], [0.56, -0.058], [0.2, -0.066], [-0.1, -0.066], [-0.2, -0.068], [-0.36, -0.086], [-0.5, -0.1]], 0.046, stock, 0, 0, 0);
+    gX(g, [[-0.06, -0.05], [-0.14, -0.05], [-0.17, -0.16], [-0.12, -0.172]], 0.038, stock, 0, 0, 0);                         // pistol grip
+    gB(g, 0.05, 0.072, 0.012, M.rubber, 0, -0.023, 0.566);                                                                   // forend tip
+    gB(g, 0.048, 0.12, 0.012, M.rubber, 0, -0.04, -0.506);                                                                   // recoil pad
+  } else {
+    gX(g, [[-0.5, 0.02], [-0.44, 0.05], [-0.3, 0.056], [-0.2, 0.04], [-0.14, 0.018], [0.17, 0.018], [0.2, 0.016], [0.5, 0.016], [0.5, -0.066], [0.2, -0.072], [-0.1, -0.07], [-0.2, -0.074], [-0.36, -0.098], [-0.5, -0.115]], 0.05, stock, 0, 0, 0);
+    gX(g, [[-0.06, -0.06], [-0.14, -0.06], [-0.178, -0.17], [-0.12, -0.19], [-0.085, -0.17]], 0.042, stock, 0, 0, 0);          // pistol grip
+    gX(g, [[-0.34, 0.056], [-0.2, 0.052], [-0.2, 0.078], [-0.32, 0.084]], 0.036, M.poly, 0, 0, 0);                            // cheek riser
+    gB(g, 0.05, 0.13, 0.012, M.rubber, 0, -0.045, -0.508);                                                                   // recoil pad
+    gB(g, 0.048, 0.12, 0.008, M.alu, 0, -0.045, -0.495);                                                                     // spacer
+    gB(g, 0.008, 0.012, 0.03, M.alu, 0.026, 0.012, -0.12);                                                                   // cheek riser knob
+    gB(g, 0.052, 0.012, 0.18, M.alu, 0, -0.07, 0.3);                                                                         // aluminium bedding block
   }
+
+  // ---------- RECEIVER + ACTION ----------
+  gX(g, [[-0.14, 0.0], [-0.14, 0.044], [0.17, 0.044], [0.17, 0.0]], 0.04, M.blued, 0, 0, 0);
+  gCf(g, 0.019, 0.019, 0.3, M.blued, 0, 0.026, 0.02);                                                                         // round receiver top
+  gB(g, 0.004, 0.02, 0.09, M.dark, 0.0205, 0.026, 0.0);                                                                       // ejection port
+  gCf(g, 0.008, 0.008, 0.1, M.steel, 0.026, 0.03, -0.06);                                                                     // bolt body
+  gCh(g, 0.004, 0.05, M.steel, 0.045, 0.03, -0.1);                                                                            // bolt handle stem
+  gSp(g, 0.009, M.blued, 0.072, 0.03, -0.1);                                                                                  // bolt knob
+  gB(g, 0.006, 0.012, 0.022, M.steel, 0.03, 0.054, -0.12);                                                                    // safety
+  gB(g, 0.012, 0.008, 0.07, M.alu, 0, 0.046, 0.0);                                                                            // rail
+  gB(g, 0.014, 0.008, 0.095, M.blued, 0, -0.1, -0.052); gB(g, 0.014, 0.03, 0.008, M.blued, 0, -0.085, -0.005);               // trigger guard loop under the stock
+  gB(g, 0.006, 0.026, 0.008, M.steel, 0, -0.082, -0.04);                                                                      // trigger
+
+  // ---------- MAGAZINE ----------
+  gX(g, [[0.0, -0.066], [0.09, -0.066], [0.09, scout ? -0.104 : -0.118], [0.0, scout ? -0.104 : -0.118]], 0.036, M.blued, 0, 0, 0);
+  gB(g, 0.038, 0.01, 0.1, M.steel, 0, scout ? -0.108 : -0.122, 0.045);
+
+  // ---------- BARREL (starts at the receiver face) ----------
+  if (scout) {
+    gCf(g, 0.0155, 0.0125, 0.76, M.blued, 0, AX, 0.52);                                                                      // tapered barrel
+    gCf(g, 0.0165, 0.0165, 0.03, M.blued, 0, AX, 0.895);                                                                     // muzzle nut
+    gCf(g, 0.0085, 0.0085, 0.004, M.dark, 0, AX, 0.912);
+    gB(g, 0.004, 0.02, 0.008, M.steel, 0, 0.052, 0.88); gB(g, 0.012, 0.01, 0.012, M.blued, 0, 0.045, 0.86);                   // front blade
+  } else {
+    gCf(g, 0.0185, 0.0165, 0.91, M.blued, 0, AX, 0.575);                                                                     // heavy barrel
+    gCf(g, 0.0215, 0.0215, 0.12, M.blued, 0, AX, 1.06);                                                                      // muzzle brake body
+    gCf(g, 0.0235, 0.0235, 0.012, M.steel, 0, AX, 1.0); gCf(g, 0.0235, 0.0235, 0.012, M.steel, 0, AX, 1.12);                  // brake end rings
+    gCf(g, 0.0095, 0.0095, 0.004, M.dark, 0, AX, 1.126);                                                                     // bore
+  }
+
+  // ---------- SCOPE ----------
+  const sf = scout ? 0.2 : 0.12, sl = scout ? 0.22 : 0.3, sr = scout ? 0.017 : 0.019, sy = scout ? 0.076 : 0.08;
+  gCf(g, sr, sr, sl, M.blued, 0, sy, sf);                                                                                     // main tube
+  gCf(g, sr, sr * 1.4, scout ? 0.05 : 0.09, M.blued, 0, sy, sf + sl / 2 + (scout ? 0.025 : 0.045));                          // objective bell
+  gCf(g, sr * 1.4, sr * 1.4, 0.006, M.steel, 0, sy, sf + sl / 2 + (scout ? 0.052 : 0.092));                                  // front rim
+  gCf(g, sr * 1.4, sr * 1.4, 0.003, M.glass, 0, sy, sf + sl / 2 + (scout ? 0.056 : 0.096));                                  // front lens
+  gCf(g, sr * 1.25, sr, scout ? 0.04 : 0.06, M.blued, 0, sy, sf - sl / 2 - (scout ? 0.02 : 0.03));                           // eyepiece flare
+  gCf(g, sr * 1.3, sr * 1.3, 0.008, M.rubber, 0, sy, sf - sl / 2 - (scout ? 0.045 : 0.064));                                 // rubber eye cup
+  gCf(g, sr * 1.2, sr * 1.2, 0.003, M.glass, 0, sy, sf - sl / 2 - (scout ? 0.05 : 0.07));                                    // rear lens
+  gCf(g, sr * 1.06, sr * 1.06, 0.03, M.alu, 0, sy, sf - 0.02);                                                                // magnification ring
+  for (const df of (scout ? [0.06, -0.06] : [0.09, -0.08])) {                                                                  // rings + mounts down to the rail
+    gCf(g, sr * 1.25, sr * 1.25, 0.022, M.alu, 0, sy, sf + df);
+    gB(g, 0.026, sy - 0.04, 0.026, M.alu, 0, (sy + 0.04) / 2 - 0.004, sf + df);
+    gB(g, 0.034, 0.01, 0.034, M.alu, 0, 0.046, sf + df);
+  }
+  gB(g, 0.016, 0.01, scout ? 0.2 : 0.28, M.alu, 0, 0.049, sf);                                                                // long scope rail joining receiver and rings
+  gCv(g, 0.011, 0.011, 0.026, M.steel, 0, sy + sr + 0.008, sf + 0.02);                                                        // elevation turret
+  gCv(g, 0.0125, 0.0125, 0.006, M.blued, 0, sy + sr + 0.023, sf + 0.02);
+  gCh(g, 0.011, 0.026, M.steel, sr + 0.012, sy, sf + 0.02);                                                                   // windage turret
+  if (!scout) { gCh(g, 0.012, 0.022, M.steel, 0, sy, sf + 0.02); gCf(g, 0.014, 0.014, 0.02, M.steel, 0, sy, sf + sl / 2 - 0.02); }
+
+  // ---------- DETAIL (high quality only) ----------
+  if (!L) {
+    gTeeth(g, M.alu, -0.1, 0.16, 0.05, 0.014, 0.014, 0.004);
+    for (let i = 0; i < 5; i++) gB(g, 0.0475, 0.056, 0.004, M.dark, 0, 0.026, -0.12 + i * 0.012, 0, 0, 0);
+    gSp(g, 0.007, M.steel, 0.0, -0.1, -0.505);                                                                                // sling stud (butt)
+    gSp(g, 0.007, M.steel, 0.0, -0.075, 0.45);                                                                                // sling stud (forend)
+    if (scout) {
+      for (let i = 0; i < 9; i++) gB(g, 0.05, 0.003, 0.003, M.rubber, 0, -0.03, 0.18 + i * 0.012);
+      for (let i = 0; i < 6; i++) gB(g, 0.004, 0.034, 0.004, M.dark, 0.0235, -0.03, 0.2 + i * 0.05);
+      gB(g, 0.034, 0.012, 0.08, M.blued, 0, 0.04, -0.2);                                                                      // rear ghost-ring base
+      gTorus(g, 0.008, 0.0025, M.blued, 0, 0.056, 0.22, 0, Math.PI / 2, 0);
+      gB(g, 0.024, 0.01, 0.1, M.steel, 0, 0.012, 0.58);                                                                       // barrel band
+    } else {
+      for (let i = 0; i < 6; i++) gB(g, 0.004, 0.003, 0.4, M.steel, Math.cos(i * 1.047) * 0.0185, AX + Math.sin(i * 1.047) * 0.0185, 0.72);   // barrel flutes
+      for (let i = 0; i < 4; i++) for (const sx of [-1, 1]) gB(g, 0.004, 0.018, 0.012, cap, sx * 0.0225, AX, 1.02 + i * 0.022);              // brake ports
+      gB(g, 0.018, 0.004, 0.08, cap, 0, AX + 0.0225, 1.07);
+      gB(g, 0.05, 0.014, 0.034, M.alu, 0, -0.08, 0.43);                                                                       // bipod mount
+      for (const sx of [-1, 1]) {
+        gB(g, 0.008, 0.008, 0.09, M.alu, sx * 0.034, -0.095, 0.5, 0.0, 0.0, sx * 0.12);
+        gB(g, 0.007, 0.007, 0.14, M.steel, sx * 0.038, -0.098, 0.6, 0.0, 0.0, sx * 0.12);
+        gSp(g, 0.007, M.rubber, sx * 0.04, -0.1, 0.675);
+      }
+      gCf(g, 0.005, 0.005, 0.03, M.brass, 0.012, 0.043, 0.01);                                                                // brass peeking from the port
+      gTorus(g, 0.011, 0.0025, M.steel, 0.0, -0.1, 0.52, 0, Math.PI / 2, 0);                                                  // rear sling loop
+    }
+  }
+
   if (H) {
     H.hand(0, -0.09, -0.12, 1.3); H.arm(0, -0.09, -0.12, 0.3, -0.55, 0.8);
-    H.hand(0, -0.055, 0.22, 0.95); H.arm(0, -0.055, 0.22, -0.4, -0.3, 0.85);
+    H.hand(0, -0.045, scout ? 0.3 : 0.24, 0.95); H.arm(0, -0.045, scout ? 0.3 : 0.24, -0.4, -0.3, 0.85);
   }
-  return { tip: scout ? 0.92 : 1.04, tipY: 0.026 };
+  return { tip: scout ? 0.93 : 1.14, tipY: AX };
 }
 
 // ---------------- knife (blade pointing up, held in the right hand)
@@ -2741,6 +3105,60 @@ function buildWeapon(g, id, low, H) {
   }
 }
 
+// ===== ENHANCER_V1: extra detail for every weapon =====
+const _bwOrig = buildWeapon;
+buildWeapon = function (g, id, low, H) {
+  const A = _bwOrig(g, id, low, H);
+  const M = gunMats(low);
+  if (low) return A;
+  const T = THREE;
+  const hull = GM.hull || (GM.hull = new T.MeshPhongMaterial({ color: 0xb02a22, shininess: 40 }));
+  const ring = (x, y, f, r, t, m) => gTorus(g, r, t, m || M.steel, x, y, -f, 0, Math.PI / 2, 0);
+  const sling = (y, f) => ring(0, y, f, 0.01, 0.0025);
+  const grip = (n, y0, f0, w, df, dy) => { for (let i = 0; i < n; i++) gB(g, w, 0.003, 0.028, M.dark, 0, y0 - i * (dy || 0.013), f0 - i * (df || 0.006)); };
+  if (id === 'usp' || id === 'glock' || id === 'deagle') {
+    const dg = id === 'deagle', w = dg ? 0.044 : 0.032, fF = dg ? 0.2 : (id === 'glock' ? 0.17 : 0.178);
+    gTeeth(g, M.blued, 0.04, fF - 0.04, -0.0145, 0.02, 0.014, 0.004);                    // accessory rail slots
+    gCh(g, 0.005, 0.01, M.steel, w / 2 + 0.003, -0.02, -0.01);                            // magazine release
+    ring(0, -0.15, -0.14, 0.008, 0.002);                                                  // lanyard loop
+    gB(g, w + 0.001, 0.004, 0.004, M.dark, 0, 0.04, fF - 0.035);                          // front cut
+    gB(g, 0.003, 0.012, 0.02, M.brass, w / 2, 0.036, 0.01);                               // chamber indicator
+    gB(g, 0.012, 0.01, 0.01, M.dark, 0, 0.0, fF - 0.01);                                  // muzzle crown
+    if (id === 'usp') { gB(g, 0.006, 0.012, 0.03, M.steel, -w / 2 - 0.003, 0.02, 0.01); gTeeth(g, M.steel, -0.1, -0.06, 0.056, 0.02, 0.01, 0.006); }
+    if (id === 'glock') { gB(g, 0.004, 0.008, 0.02, M.steel, w / 2 + 0.002, 0.0, 0.07); grip(5, -0.06, -0.04, w + 0.002); }
+    if (dg) { for (let i = 0; i < 4; i++) gB(g, 0.008, 0.002, 0.14, M.steel, -0.016 + i * 0.011, 0.0525 + 0.012, 0.06); gB(g, 0.006, 0.014, 0.024, M.steel, -w / 2 - 0.004, 0.024, -0.09); }
+  } else if (id === 'ak47' || id === 'galil') {
+    sling(-0.075, 0.44); gB(g, 0.014, 0.02, 0.022, M.blued, 0, -0.02, 0.76);             // sling swivel + bayonet lug
+    gB(g, 0.022, 0.004, 0.12, M.steel, 0, 0.083, -0.02); gTorus(g, 0.023, 0.003, M.blued, 0, 0.036, -0.74, 0, 0, 0);
+    gB(g, 0.052, 0.004, 0.22, M.steel, 0, 0.0525, 0.33);                                  // handguard heat shield
+    for (let i = 0; i < 5; i++) gB(g, 0.054, 0.003, 0.003, M.dark, 0, 0.056, 0.23 + i * 0.045);
+    gCh(g, 0.006, 0.01, M.steel, 0.03, -0.045, -0.145); gB(g, 0.012, 0.012, 0.008, M.steel, 0, -0.17, -0.14);   // grip screw
+    grip(5, -0.07, -0.098, 0.044);
+    gB(g, 0.02, 0.012, 0.04, M.dark, 0.0, 0.0, 0.9);
+    if (id === 'ak47') { gB(g, 0.044, 0.01, 0.012, M.steel, 0, -0.04, -0.503); for (let i = 0; i < 6; i++) gB(g, 0.042, 0.003, 0.004, M.dark, 0, -0.01 - i * 0.015, -0.508); }
+  } else if (id === 'm3') {
+    for (let i = 0; i < 4; i++) { gCf(g, 0.0075, 0.0075, 0.045, hull, 0.036, -0.02 + i * 0.017, 0.0); gCf(g, 0.0082, 0.0082, 0.012, M.brass, 0.036, -0.02 + i * 0.017, -0.03); }   // side-saddle shells
+    gB(g, 0.03, 0.05, 0.02, M.steel, 0, 0.0, 0.3); gB(g, 0.004, 0.016, 0.012, M.steel, 0.028, -0.04, 0.05); sling(-0.05, 0.66);
+    for (let i = 0; i < 5; i++) gB(g, 0.044, 0.003, 0.003, M.dark, 0, 0.0, -0.4 + i * 0.03);
+  } else if (id === 'knife') {
+    const k = g.children.find(c => c.isGroup);
+    if (k) {
+      gB(k, 0.006, 0.17, 0.004, M.silver, -0.0295, 0.2, 0.0055);                               // edge bevel
+      gTorus(k, 0.012, 0.0022, M.rubber, 0, -0.125, 0, Math.PI / 2, 0, 0);                      // lanyard loop
+      for (const y of [-0.05, 0.0, 0.05]) gSp(k, 0.004, M.brass, 0.0215, y, 0);                // handle rivets
+      gB(k, 0.01, 0.014, 0.018, M.steel, 0, 0.07, 0);                                           // choil
+    }
+  } else if (id === 'he' || id === 'flash' || id === 'smoke') {
+    const nb = g.children.find(c => c.isGroup);
+    if (nb) {
+      const band = new T.MeshPhongMaterial({ color: id === 'he' ? 0xd4b020 : (id === 'flash' ? 0xb02a22 : 0x2f8a3a), shininess: 30 });
+      gCv(nb, 0.0372, 0.0372, 0.008, band, 0, 0.0, 0);
+      gB(nb, 0.012, 0.02, 0.004, M.steel, -0.012, 0.075, 0);                                    // safety clip
+    }
+  }
+  return A;
+};
+
 function buildViewModel(id) {
   while (vm.children.length) vm.remove(vm.children[0]);
   vmWeapon = id; vmFlash = null;
@@ -2803,16 +3221,14 @@ function switchTo(slot) {
   if (!P.alive || !P.inv[slot] || slot === P.cur) return;
   P.last = P.cur; P.cur = slot; P.reloading = false; P.reloadT = 0; P.zoom = 0; P.swT = 0.35; P.fireCd = 0.2;
   buildViewModel(curState().id);
-  sfxBeep(500, 0.04, 0.05, 'square');
+  sfxMech('draw', 0.09);
 }
 function startReload() {
   const s = curState(), w = curW();
   if (w.melee || w.nade || P.reloading || s.mag >= w.mag || s.reserve <= 0 || !P.alive) return;
   P.reloading = true; P.reloadT = w.reload; P.zoom = 0;
-  sfxClick(0.1);
+  sfxReload(w.id, w.reload);
   spawnPart(P.x + Math.cos(P.yaw) * 0.3, eyeY() - 0.5, P.z - Math.sin(P.yaw) * 0.3, rand(-0.3, 0.3), 0.4, rand(-0.3, 0.3), 0x222222, 1.4, 2.2);
-  setTimeout(() => { if (P.reloading) sfxClick(0.12); }, w.reload * 550);
-  setTimeout(() => { if (P.reloading) sfxClick(0.16); }, w.reload * 940);
 }
 function currentSpread(w) {
   const sp = Math.hypot(P.vx, P.vz);
@@ -2834,7 +3250,7 @@ function tryFire() {
   if (w.nade) { throwPlayerNade(w.id); return; }
   if (w.melee) { melee(w); return; }
   if (s.mag <= 0) {
-    P.fireCd = 0.25; sfxBeep(180, 0.04, 0.08, 'square');
+    P.fireCd = 0.25; sfxMech('dry', 0.12);
     if (s.reserve > 0) startReload();
     return;
   }
@@ -2854,7 +3270,7 @@ function tryFire() {
     const L = Math.hypot(d.x, d.y, d.z); d.x /= L; d.y /= L; d.z /= L;
     fireRay(w, d, ox, oy, oz, 1, 0, muz);
   }
-  sfxGun(w.snd, w.tone, 0.22 + w.snd * 0.2, 0);
+  sfxGun(w.snd, w.tone, 0.22 + w.snd * 0.2, 0, false, w.id);
   makeNoiseTo(P.x, P.z, P.team, w.scope ? 65 : 45);
   spawnPart(P.x + fx * 0.4 + rx * 0.18, eyeY() - 0.15, P.z + fz * 0.4 + rz * 0.18,
     rx * rand(1.5, 2.5) + fx * 0.3, rand(1.5, 2.5), rz * rand(1.5, 2.5) + fz * 0.3, 0xd9a63a, 0.8);
@@ -2882,13 +3298,13 @@ function fireRay(w, d, ox, oy, oz, mul, depth, tr) {
   if (hitBot) {
     let dmg = w.dmg * mul * (headHit ? (w.pellets ? 2 : 4) : 1);
     if (!headHit && (hy - hitBot.y) < 0.7) dmg *= 0.75;
-    sparks(hx, hy, hz, -d.x, 0.3, -d.z, 0xaa1111, headHit ? 10 : 5);
+    sparks(hx, hy, hz, -d.x, 0.3, -d.z, 0xaa1111, headHit ? 10 : 5); sfxImpactAt(hx, hz, true);
     const killed = damageEntity(hitBot, dmg, P, headHit, w.id);
     showHit(killed);
     return;
   }
   if (wr.hit) {
-    addDecal(hx, hy, hz, wr.nx, wr.ny, wr.nz);
+    addDecal(hx, hy, hz, wr.nx, wr.ny, wr.nz); sfxImpactAt(hx, hz, false);
     sparks(hx, hy, hz, wr.nx, wr.ny, wr.nz, 0xd8c8a0, 4);
     spawnDust(hx, hy, hz, wr.nx, wr.ny, wr.nz);
     const pen = PEN[w.id];
@@ -2911,11 +3327,11 @@ function melee(w) {
     const dx = b.x - P.x, dz = b.z - P.z, dist = Math.hypot(dx, dz);
     if (dist < 2.4 && (dx * fx + dz * fz) / (dist || 1) > 0.55 && dist < bd) { best = b; bd = dist; }
   }
-  sfxGun(0.15, 800, 0.08, 0);
+  sfxKnife(false);
   if (best) {
     const bfx = -Math.sin(best.yaw), bfz = -Math.cos(best.yaw);
     const back = (bfx * fx + bfz * fz) > 0.5;
-    const killed = damageEntity(best, back ? 200 : w.dmg, P, false, 'knife');
+    const killed = damageEntity(best, back ? 200 : w.dmg, P, false, 'knife'); sfxKnife(true);
     showHit(killed);
   }
 }
@@ -2926,7 +3342,7 @@ function showHit(kill) {
   h.style.opacity = 1; h.style.filter = kill ? 'drop-shadow(0 0 3px #f00)' : 'none';
   h.style.display = 'block';
   hitTimer = 0.18;
-  sfxBeep(kill ? 1200 : 900, 0.06, 0.07, 'sine');
+  sfxHitmark(kill);
 }
 
 // ---------------------------------------------------------------- ostmine
@@ -3203,7 +3619,7 @@ function startRound() {
   }
   // assign bomb carrier and sites
   const ts = entities().filter(e => e.team === 'T');
-  bomb.carrier = ts[Math.floor(Math.random() * ts.length)];
+  bomb.carrier = P.team === 'T' ? P : ts[Math.floor(Math.random() * ts.length)];       // playing as T: you always get the C4
   if (bomb.carrier === P) P.hasBomb = true;
   bomb.targetSite = Math.random() < 0.5 ? 0 : 1;
   let cti = 0;
@@ -3295,7 +3711,7 @@ function updatePlayer(dt) {
     const sp2 = Math.hypot(P.vx, P.vz);
     if (P.onGround && sp2 > 2.0 && !keys.has('ShiftLeft') && P.crouchT < 0.5) {
       P.stepT -= dt * (sp2 / 5.6);
-      if (P.stepT <= 0) { P.stepT = 0.34; sfxGun(0.1, 700, 0.07, 0, true); }
+      if (P.stepT <= 0) { P.stepT = 0.34; sfxStep(0.1); }
     } else if (sp2 < 1) P.stepT = 0.1;
   }
   if (canMove && keys.has('Space') && P.onGround) { P.vy = 6.2; P.onGround = false; }
@@ -3461,7 +3877,7 @@ function updateHud() {
     if (hudCache.pk !== pk) {
       hudCache.pk = pk;
       let pips = '';
-      for (let i = 0; i < w.mag; i++) pips += '<i class="' + (i < s.mag ? '' : 'off') + '"></i>';
+      for (let i = 0; i < w.mag; i++) pips += '<i class="' + (i < s.mag ? '' : 'off') + '">';
       $('pips').innerHTML = pips;
     }
     setDisp('reloadWrap', P.reloading);
@@ -3474,7 +3890,7 @@ function updateHud() {
   if (hudCache.sk !== sk) {
     hudCache.sk = sk;
     $('slots').innerHTML = [1, 2, 3, 4, 5, 6].filter(n => P.inv[n]).map(n =>
-      '<div class="slot' + (n === P.cur ? ' cur' : '') + '"><b>' + n + '</b>' + WEAPONS[P.inv[n].id].name + (WEAPONS[P.inv[n].id].nade ? ' x' + P.inv[n].mag : '') + '</div>').join('');
+      '<div class="slot' + (n === P.cur ? ' cur' : '') + '">' + n + '' + WEAPONS[P.inv[n].id].name + (WEAPONS[P.inv[n].id].nade ? ' x' + P.inv[n].mag : '') + '</div>').join('');
   }
   // buy hint
   const buyable = canBuy();
@@ -3623,7 +4039,7 @@ const MODE_HINT = {
   arms: 'Each kill upgrades your weapon, from pistol to AWP. Finish the race with a knife kill.',
   train: '8 targets, half of them move. No one shoots back. Buy any weapon and practise for 2 minutes.',
 };
-const DIFF_DESC = ['Slow reactions and poor aim. 3 enemy bots.', 'A balanced fight. 4 enemy bots.', 'Fast reactions and sharp aim. 5 enemy bots.'];
+const DIFF_DESC = ['Slow reactions and poor aim. 3 enemy bots.', 'A balanced fight. 4 enemy bots.', 'Brutal. Near-instant reactions, wide vision, deadly aim and tougher enemies. 5 enemy bots.'];
 function updateSummary() {
   $('summary').innerHTML = '<span class="chip">' + MODE_NAMES[playerMode] + '</span><span class="chip">' + (playerMap === 'town' ? 'TOWN' : 'DESERT') +
     '</span><span class="chip ' + playerTeam.toLowerCase() + '">' + (playerTeam === 'CT' ? 'COUNTER-TERRORISTS' : 'TERRORISTS') + '</span><span class="chip">' + diff.name +
@@ -3732,7 +4148,7 @@ document.addEventListener('mousedown', e => {
     trigger = true; triggerPressed = true;
   } else if (e.button === 2 && P.alive) {
     const w = curW();
-    if (w.scope && !P.reloading) { P.zoom = (P.zoom + 1) % 3; sfxBeep(900, 0.03, 0.05, 'sine'); }
+    if (w.scope && !P.reloading) { P.zoom = (P.zoom + 1) % 3; sfxMech('tick', 0.08); }
   }
 });
 document.addEventListener('mouseup', e => { if (e.button === 0) trigger = false; });
