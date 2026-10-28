@@ -10,7 +10,8 @@ import {
 import { 
   getFirestore, 
   collection, 
-  addDoc, 
+  doc,
+  setDoc,
   onSnapshot, 
   query, 
   orderBy, 
@@ -105,12 +106,12 @@ function updateStartAuthUI() {
     input.readOnly = true;
     hint.textContent = 'Sisse logitud – tulemus salvestatakse edetabelisse.';
     hint.className = 'text-[11px] text-emerald-400';
-    loginBtn.classList.add('hidden');
+    if (loginBtn) loginBtn.classList.add('hidden');
   } else {
     input.readOnly = false;
     hint.textContent = 'Edetabelisse pääsemiseks logi sisse.';
     hint.className = 'text-[11px] text-slate-500';
-    loginBtn.classList.remove('hidden');
+    if (loginBtn) loginBtn.classList.remove('hidden');
   }
 }
 
@@ -262,12 +263,24 @@ function renderLeaderboard(filter = "") {
   const totalBadge = document.getElementById('totalPlayersBadge');
   const avgBadge = document.getElementById('avgScoreVal');
 
-  const filtered = firestoreLeaderboard.filter(item => item.name.toLowerCase().includes(filter.toLowerCase()));
-  totalBadge.innerText = `${firestoreLeaderboard.length} Mängijat`;
+  // Filter out duplicate user entries so each player displays their highest score only
+  const uniqueUsersMap = new Map();
+  firestoreLeaderboard.forEach(item => {
+    const key = item.uid || item.name;
+    if (!uniqueUsersMap.has(key) || item.kills > uniqueUsersMap.get(key).kills) {
+      uniqueUsersMap.set(key, item);
+    }
+  });
 
-  if (firestoreLeaderboard.length > 0) {
-    const sum = firestoreLeaderboard.reduce((a, b) => a + (b.kills || 0), 0);
-    avgBadge.innerText = Math.round(sum / firestoreLeaderboard.length);
+  const uniqueLeaderboard = Array.from(uniqueUsersMap.values())
+    .sort((a, b) => b.kills - a.kills);
+
+  const filtered = uniqueLeaderboard.filter(item => item.name.toLowerCase().includes(filter.toLowerCase()));
+  totalBadge.innerText = `${uniqueLeaderboard.length} Mängijat`;
+
+  if (uniqueLeaderboard.length > 0) {
+    const sum = uniqueLeaderboard.reduce((a, b) => a + (b.kills || 0), 0);
+    avgBadge.innerText = Math.round(sum / uniqueLeaderboard.length);
   } else {
     avgBadge.innerText = "0";
   }
@@ -304,15 +317,26 @@ function renderLeaderboard(filter = "") {
 
 async function saveScoreToFirestore(name, totalKillsCount, elapsedTimeInSeconds) {
   if (!currentUser) return;
+  if (totalKillsCount < 1) return; // At least 1 kill required
   if (elapsedTimeInSeconds <= 5.0) return; // Strict Firestore rule match: time > 5.0
 
   try {
-    await addDoc(collection(db, "leaderboard"), {
+    const userDocRef = doc(db, "leaderboard", currentUser.uid);
+
+    // Only update if new kill score is strictly higher than existing entry
+    const existingEntry = firestoreLeaderboard.find(item => item.uid === currentUser.uid);
+    if (existingEntry && totalKillsCount <= existingEntry.kills) {
+      console.log("Uus skoor ei ole kõrgem kui varasem parim tulemus.");
+      return;
+    }
+
+    await setDoc(userDocRef, {
       uid: currentUser.uid,
       name: name,
       kills: totalKillsCount,
       time: elapsedTimeInSeconds
-    });
+    }, { merge: true });
+
   } catch (e) {
     console.error("Viga tulemuse salvestamisel Firestore'i: ", e);
   }
