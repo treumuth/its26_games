@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, setDoc, getDocs, query, orderBy, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
 import { getAuth, signInWithPopup, signInWithRedirect, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
@@ -21,13 +21,25 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
-// Restrict Google Sign-In prompt to voco.ee domain
-// googleProvider.setCustomParameters({
-//     'hd': 'voco.ee'
-// });
+// UI hint only: pre-selects voco.ee accounts in the Google picker.
+// Real enforcement is the onAuthStateChanged check below + Firestore rules.
+googleProvider.setCustomParameters({
+    'hd': 'voco.ee'
+});
 
 let currentUser = null;
 let isMobileDevice = false;
+
+// Escape text before putting it into innerHTML (prevents stored XSS from leaderboard names)
+function esc(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[c]));
+}
 
 // Auto-Detect Device Capabilities
 function detectDevice() {
@@ -549,7 +561,7 @@ class Player {
 
         this.isAttacking = true;
         this.attackCooldown = 0.35;
-        
+
         if (swordEquipped) {
             sfx.swordSwing();
             createSlashEffect(this.x, this.y, this.angle, this.attackRange);
@@ -587,7 +599,7 @@ function lerpAngle(current, target, turnSpeed, dt) {
     let diff = target - current;
     while (diff < -Math.PI) diff += Math.PI * 2;
     while (diff > Math.PI) diff -= Math.PI * 2;
-    
+
     const maxStep = turnSpeed * dt;
     if (Math.abs(diff) <= maxStep) {
         return target;
@@ -1010,12 +1022,12 @@ function render() {
 
         if (g.state === 'SUSPICIOUS') {
             ctx.fillStyle = '#f59e0b';
-            ctx.font = 'black 20px Inter, sans-serif';
+            ctx.font = '900 20px Inter, sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText('?', g.x, g.y - g.radius - 8);
         } else if (g.state === 'CHASE') {
             ctx.fillStyle = '#ef4444';
-            ctx.font = 'black 22px Inter, sans-serif';
+            ctx.font = '900 22px Inter, sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText('!', g.x, g.y - g.radius - 8);
         }
@@ -1066,6 +1078,8 @@ function render() {
         ctx.globalAlpha = 1.0;
     });
 
+    // Reset alignment (guard "?"/"!" labels leave it centered)
+    ctx.textAlign = 'left';
     floatingTexts.forEach(ft => {
         ctx.fillStyle = ft.color;
         ctx.font = 'bold 12px Inter';
@@ -1113,6 +1127,7 @@ function drawMap() {
                 ctx.fillRect(x + 6, y + 10, 36, 28);
                 ctx.fillStyle = '#f59e0b';
                 ctx.font = 'bold 9px Inter';
+                ctx.textAlign = 'left';
                 ctx.fillText('ESCAPE', x + 6, y + 26);
             } else if (tile === 4) {
                 ctx.fillStyle = '#334155';
@@ -1434,7 +1449,7 @@ function update(dt) {
         rock.progress += dt * rock.speed;
         const totalDist = Math.hypot(rock.targetX - rock.startX, rock.targetY - rock.startY);
         const ratio = Math.min(1, rock.progress / Math.max(1, totalDist));
-        
+
         rock.x = rock.startX + (rock.targetX - rock.startX) * ratio;
         rock.y = rock.startY + (rock.targetY - rock.startY) * ratio;
 
@@ -1451,7 +1466,7 @@ function update(dt) {
             sfx.guardHit();
             createBloodParticles(hitGuard.x, hitGuard.y, 8);
             showFloatingText("-10 HP", hitGuard.x, hitGuard.y, "#f59e0b");
-            
+
             hitGuard.state = 'SUSPICIOUS';
             hitGuard.suspicionTimer = 1.5;
             hitGuard.targetLastKnown = { x: rock.x, y: rock.y };
@@ -1647,11 +1662,13 @@ async function fetchLeaderboard() {
 
         let html = '';
         let rank = 1;
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
+        querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const safeName = esc(String(data.name || 'Anonymous').slice(0, 40));
+            const safeTime = typeof data.time === 'number' ? formatTime(data.time) : '--:--';
             html += `<div class="flex justify-between border-b border-slate-900 pb-0.5 text-xs">
-                <span>#${rank++} <strong class="text-slate-200">${data.name || 'Anonymous'}</strong></span>
-                <span class="text-amber-400 font-mono">${formatTime(data.time)}</span>
+                <span>#${rank++} <strong class="text-slate-200">${safeName}</strong></span>
+                <span class="text-amber-400 font-mono">${safeTime}</span>
             </div>`;
         });
         listElem.innerHTML = html;
@@ -1661,6 +1678,7 @@ async function fetchLeaderboard() {
     }
 }
 
+// One entry per player (doc id = uid). Only overwritten when the new time is faster.
 async function submitScore() {
     if (!currentUser) return;
 
@@ -1671,9 +1689,20 @@ async function submitScore() {
     }
 
     try {
-        await addDoc(collection(db, "leaderboard"), {
+        const ref = doc(db, "leaderboard", currentUser.uid);
+        const existing = await getDoc(ref);
+
+        if (existing.exists() && typeof existing.data().time === 'number' && existing.data().time <= gameTime) {
+            if (btn) {
+                btn.innerText = 'You already have a faster time on the board';
+                btn.className = 'w-full bg-slate-700 text-slate-300 text-xs font-bold px-4 py-2.5 rounded-xl cursor-not-allowed transition';
+            }
+            return;
+        }
+
+        await setDoc(ref, {
             uid: currentUser.uid,
-            name: currentUser.displayName || 'Anonymous',
+            name: String(currentUser.displayName || 'Anonymous').slice(0, 40),
             time: gameTime,
             kills: guardKills,
             timestamp: serverTimestamp()
@@ -1685,7 +1714,7 @@ async function submitScore() {
         }
         fetchLeaderboard();
     } catch (e) {
-        console.error("Error adding document: ", e);
+        console.error("Error saving score: ", e);
         if (btn) {
             btn.disabled = false;
             btn.innerText = 'Retry Submission';
@@ -1707,7 +1736,7 @@ function returnToMainMenu() {
     gameState = 'START';
     resetKeys();
     loadHighScores();
-    
+
     document.getElementById('modal-pause')?.classList.add('hidden');
     document.getElementById('modal-gameover')?.classList.add('hidden');
     document.getElementById('modal-victory')?.classList.add('hidden');
@@ -1724,7 +1753,7 @@ function triggerGameOver() {
 
 function triggerVictory() {
     gameState = 'VICTORY';
-    
+
     const currentRocks = getStartingRocksForGame();
     const nextRocks = Math.max(3, currentRocks - 1);
     localStorage.setItem('shadow_castle_v3_rocks', nextRocks.toString());
