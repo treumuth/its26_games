@@ -520,9 +520,9 @@ function talkToMargus() {
     const editor = document.getElementById('margus-python-code');
     const output = document.getElementById('margus-python-output');
     const feedback = document.getElementById('code-feedback');
-    if (editor) editor.value = 'greeting = "Hello, Margus!"\nprint(greeting)';
+    if (editor) editor.value = 'name = "Margus"\ngreeting = ""\n\n# Margus wants to greet the visitor.\nif name == "Margus":\n    print(greeting)\n\ngreeting = "Hello, " + name';
     if (output) output.textContent = 'Program output will appear here…';
-    if (feedback) feedback.textContent = 'Edit the code if you like, then run it.';
+    if (feedback) feedback.textContent = 'Something is wrong with the order. Run it and inspect the output.';
     openMiniGame('modal-margus-code');
 }
 
@@ -558,13 +558,11 @@ async function runMargusPython() {
     const feedback = document.getElementById('code-feedback');
     const runButton = document.getElementById('btn-code-run');
     const source = editor?.value ?? '';
-    const expectedProgram = /^\s*greeting\s*=\s*(["'])Hello, Margus!\1\s*\r?\n\s*print\s*\(\s*greeting\s*\)\s*$/;
-
-    // Keep this tiny game exercise focused on assignment + print, while the
-    // accepted source is executed by CPython running in Pyodide in the browser.
-    if (!expectedProgram.test(source)) {
-        output.textContent = 'No output yet.';
-        feedback.textContent = 'Use two Python lines: assign "Hello, Margus!" to greeting, then print(greeting).';
+    // Execute the player's actual Python, rather than matching a prewritten answer.
+    // The challenge is solved by the program's behaviour: its output must greet Margus.
+    if (!source.trim()) {
+        output.textContent = '(no output)';
+        feedback.textContent = 'The program is empty. Add or fix some Python first.';
         return;
     }
 

@@ -100,9 +100,9 @@ document.getElementById('btn-touch-rock')?.addEventListener('pointerdown', (e) =
 });
 document.getElementById('btn-talk-margus')?.addEventListener('pointerdown', (e) => { e.preventDefault(); talkToMargus(); });
 document.getElementById('btn-code-clear')?.addEventListener('click', () => {
-    document.getElementById('margus-python-code').value = 'greeting = "Hello, Margus!"\nprint(greeting)';
+    document.getElementById('margus-python-code').value = 'name = "Margus"\ngreeting = ""\n\n# Margus wants to greet the visitor.\nif name == "Margus":\n    print(greeting)\n\ngreeting = "Hello, " + name';
     document.getElementById('margus-python-output').textContent = 'Program output will appear here…';
-    document.getElementById('code-feedback').textContent = 'Code reset. Run the program when you are ready.';
+    document.getElementById('code-feedback').textContent = 'Back to Margus’s original messy program. Can you fix its logic?';
 });
 document.getElementById('btn-code-close')?.addEventListener('click', () => closeMiniGame('modal-margus-code'));
 document.getElementById('btn-code-run')?.addEventListener('click', runMargusPython);

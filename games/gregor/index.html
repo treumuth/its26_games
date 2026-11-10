@@ -303,18 +303,23 @@
     <div id="modal-margus-code" class="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-950/90 backdrop-blur-md p-3 overflow-y-auto">
       <section class="w-full max-w-2xl rounded-2xl border border-amber-600/60 bg-slate-900 p-5 shadow-2xl text-slate-100">
         <p class="text-amber-400 text-xs font-black tracking-widest">MARGUS'S PYTHON CHALLENGE</p>
-        <h2 class="cinzel-font text-2xl text-amber-200 font-bold mt-1">Write a greeting program!</h2>
-        <p class="text-sm text-slate-300 mt-2">Margus has forgotten how to greet visitors. Write two lines of Python: store <code class="text-amber-200">"Hello, Margus!"</code> in a variable named <code class="text-amber-200">greeting</code>, then print it.</p>
+        <h2 class="cinzel-font text-2xl text-amber-200 font-bold mt-1">Fix Margus's messy program!</h2>
+        <p class="text-sm text-slate-300 mt-2">Margus tried to turn his Scratch blocks into Python, but he put the instructions in a silly order. Read the code, work out what happens when it runs, and fix the logic so the output says <code class="text-amber-200">Hello, Margus!</code>.</p>
         <label for="margus-python-code" class="block text-[10px] uppercase tracking-widest text-slate-400 mt-4 mb-2">Your Python code</label>
-        <textarea id="margus-python-code" spellcheck="false" autocapitalize="off" autocomplete="off" class="w-full min-h-32 rounded-xl border border-slate-700 bg-slate-950 p-4 font-mono text-sm leading-6 text-emerald-200 outline-none focus:border-amber-400" aria-label="Python code editor">greeting = "Hello, Margus!"
-print(greeting)</textarea>
+        <textarea id="margus-python-code" spellcheck="false" autocapitalize="off" autocomplete="off" class="w-full min-h-32 rounded-xl border border-slate-700 bg-slate-950 p-4 font-mono text-sm leading-6 text-emerald-200 outline-none focus:border-amber-400" aria-label="Python code editor">name = "Margus"
+greeting = ""
+
+# Margus wants to greet the visitor.
+if name == "Margus":
+    print(greeting)
+
+greeting = "Hello, " + name</textarea>
         <div class="mt-3 rounded-xl border border-slate-700 bg-black/40 p-3">
           <div class="text-[10px] uppercase tracking-widest text-slate-500 mb-1">Python output</div>
           <pre id="margus-python-output" class="min-h-6 whitespace-pre-wrap font-mono text-sm text-emerald-300">Program output will appear here…</pre>
         </div>
-        <p id="code-feedback" class="text-sm text-amber-200 mt-3 min-h-5">Edit the code if you like, then run it.</p>
+        <p id="code-feedback" class="text-sm text-amber-200 mt-3 min-h-5">Something is wrong with the order. Run it and inspect the output.</p>
         <div class="flex gap-2 mt-4"><button id="btn-code-clear" class="rounded-lg bg-slate-700 px-4 py-2 font-bold text-sm">Reset code</button><button id="btn-code-run" class="flex-1 rounded-lg bg-amber-500 text-slate-950 py-2 font-black text-sm">▶ Run Python</button><button id="btn-code-close" class="rounded-lg border border-slate-600 px-4 py-2 text-sm">Later</button></div>
-        <p class="text-[10px] text-slate-500 mt-3">Runs in a browser-based Python runtime. An internet connection is needed the first time it loads.</p>
       </section>
     </div>
 
