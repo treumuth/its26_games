@@ -200,24 +200,87 @@
   #settings .val{display:inline-block;min-width:50px;text-align:right;color:var(--amber)}
   #settings canvas{display:block;margin:12px auto 6px;border:1px solid #555;border-radius:8px}
 
-  /* ------------------------------------------------------------ cheat menu */
+  /* ------------------------------------------------------------ AXIOM cheat menu */
+  :root{--axac:#00a8ff}
   #esp{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
-  #cheatHud{left:16px;top:330px;font-size:12px;line-height:1.5;letter-spacing:1px}
-  #cheats{display:none;margin-top:18px;padding:14px 24px 16px;text-align:left;background:rgba(10,10,12,.88);border:1px solid #ff4d4d;border-radius:12px}
-  #cheats h3{margin:0 0 2px;text-align:center;letter-spacing:3px;color:#ff6a6a}
-  #cheats .hint{text-align:center;font-size:12px;color:#a9a9b0;margin-bottom:6px}
-  #cheats h4{margin:14px 0 4px;padding-bottom:4px;font-size:12px;letter-spacing:2px;color:#fff;border-bottom:1px solid rgba(255,255,255,.18)}
-  #cheats .row2{display:flex;align-items:center;justify-content:space-between;margin:7px 0;font-size:15px;color:#ddd}
-  #cheats input[type=range]{width:240px;vertical-align:middle;accent-color:#ff4d4d}
-  #cheats input[type=checkbox]{width:18px;height:18px;accent-color:#ff4d4d}
-  #cheats .val{display:inline-block;min-width:50px;text-align:right;color:#ff6a6a}
+  #axWm,#axBinds{left:16px;font:600 12px/1.2 "Segoe UI",Roboto,Arial,sans-serif;color:#cfd6e0;text-shadow:none;background:rgba(9,11,15,.86);border:1px solid #1b212b;border-left:2px solid var(--axac);border-radius:4px;letter-spacing:.3px}
+  #axWm{top:218px;padding:6px 10px;white-space:nowrap}
+  #axWm b{color:#fff;letter-spacing:1px}
+  #axWm i{font-style:normal;color:var(--axac)}
+  #axBinds{top:254px;min-width:170px;padding:0 0 4px;display:none}
+  body.ingame #axBinds.on{display:block}
+  #axBinds .bt{padding:6px 10px;font-weight:700;color:#fff;border-bottom:1px solid #1b212b;margin-bottom:3px}
+  #axBinds .br{display:flex;justify-content:space-between;gap:18px;padding:2px 10px;color:#9aa5b5}
+  #axBinds .br span:last-child{color:var(--axac)}
+
+  #ax{position:fixed;z-index:200;display:none;left:0;top:0;width:900px;height:600px;max-width:98vw;max-height:96vh;background:#0a0c10;border:1px solid #1b2029;border-radius:8px;box-shadow:0 24px 80px rgba(0,0,0,.8),0 0 0 1px #000;font:500 13px/1.3 "Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#c4cbd6;overflow:hidden;text-align:left;cursor:default;letter-spacing:0;text-shadow:none}
+  #ax *{box-sizing:border-box}
+  #ax .axside{position:absolute;left:0;top:0;bottom:0;width:190px;background:#080a0d;border-right:1px solid #151a22;display:flex;flex-direction:column;padding:14px 10px 0}
+  #ax .axlogo{font:900 25px/1 "Segoe UI",Arial,sans-serif;color:#fff;letter-spacing:1.5px;padding:2px 6px 16px;cursor:move}
+  #ax .axlogo span{color:var(--axac)}
+  #ax .axgrp{font-size:11px;color:#46515f;padding:12px 8px 6px}
+  #ax .axtab{display:flex;align-items:center;gap:11px;padding:9px 10px;margin:1px 0;border-radius:6px;color:#8d97a6;font-weight:600;font-size:14px;cursor:pointer;transition:background .12s,color .12s}
+  #ax .axtab svg{width:17px;height:17px;flex:none;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  #ax .axtab:hover{color:#d5dce7}
+  #ax .axtab.on{background:#161b23;color:#fff}
+  #ax .axtab.on svg{stroke:var(--axac)}
+  #ax .axuser{margin:auto -10px 0;padding:12px 16px;border-top:1px solid #151a22;display:flex;align-items:center;gap:10px}
+  #ax .axav{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--axac),#14304a);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff}
+  #ax .axun{font-weight:700;color:#e3e8ef;font-size:13px}
+  #ax .axus{font-size:11px;color:#5d6a7b}
+  #ax .axus b{color:var(--axac);font-weight:700}
+  #ax .axmain{position:absolute;left:190px;right:0;top:0;bottom:0;display:flex;flex-direction:column}
+  #ax .axtop{height:56px;flex:none;display:flex;align-items:center;gap:10px;padding:0 16px;border-bottom:1px solid #151a22;cursor:move}
+  #ax .axsave{display:flex;align-items:center;gap:9px;padding:8px 22px 8px 14px;background:#11151b;border:1px solid #1b212b;border-radius:5px;color:#d3dae5;font-weight:600;cursor:pointer}
+  #ax .axsave svg{width:15px;height:15px;stroke:#aab4c2;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  #ax .axsave:hover{border-color:var(--axac)}
+  #ax .axsp{flex:1}
+  #ax .axsearch{width:34px;height:32px;border-radius:5px;background:transparent;border:1px solid transparent;color:#d3dae5;padding:0 10px 0 34px;outline:none;font:500 13px "Segoe UI",Arial,sans-serif;user-select:text;-webkit-user-select:text;transition:width .18s,background .18s,border-color .18s;cursor:pointer}
+  #ax .axsearch:focus,#ax .axsearch:not(:placeholder-shown){width:190px;background:#0e1217;border-color:#1b212b;cursor:text}
+  #ax .axsearchw{position:relative;height:32px}
+  #ax .axsearchw svg{position:absolute;left:9px;top:8px;width:16px;height:16px;stroke:#d3dae5;fill:none;stroke-width:1.9;stroke-linecap:round;pointer-events:none}
+  #ax .axbody{flex:1;overflow:auto;padding:16px 16px 20px}
+  #ax .axbody::-webkit-scrollbar{width:8px}
+  #ax .axbody::-webkit-scrollbar-thumb{background:#1d242e;border-radius:4px}
+  #ax .pane{display:none}
+  #ax .pane.on,#ax.searching .pane{display:block}
+  #ax .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+  @media (max-width:760px){#ax .cols{grid-template-columns:1fr}}
+  #ax .col{display:flex;flex-direction:column;gap:16px;min-width:0}
+  #ax .card{background:#0d1015;border:1px solid #141922;border-radius:6px;padding:0 0 6px}
+  #ax .card h5{margin:0;padding:12px 14px 9px;font:700 13px "Segoe UI",Arial,sans-serif;color:#e7ecf3;border-bottom:1px solid #171c25;margin-bottom:4px;letter-spacing:.2px}
+  #ax .axrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 14px;min-height:34px}
+  #ax .axrow .lab{color:#8a95a5;font-weight:600;font-size:13px}
+  #ax .axrow .lab em{font-style:normal;color:#4d5868;font-size:11px;margin-left:6px}
+  #ax .axrow.hid{display:none}
+  #ax .card.hid,#ax .axbtn.hid{display:none}
+  #ax .axsw{position:relative;width:30px;height:16px;flex:none;border-radius:8px;background:#232933;cursor:pointer;transition:background .15s}
+  #ax .axsw::after{content:"";position:absolute;left:2px;top:2px;width:12px;height:12px;border-radius:50%;background:#78849a;transition:left .15s,background .15s}
+  #ax .axsw.on{background:var(--axac)}
+  #ax .axsw.on::after{left:16px;background:#fff}
+  #ax .axctl{display:flex;align-items:center;gap:9px}
+  #ax input[type=range]{-webkit-appearance:none;appearance:none;width:128px;height:4px;border-radius:2px;outline:none;margin:0;cursor:pointer;background:linear-gradient(to right,var(--axac) var(--p,0%),#1d232d var(--p,0%))}
+  #ax input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--axac);border:2px solid #0d1015;box-shadow:0 0 0 1px var(--axac)}
+  #ax input[type=range]::-moz-range-thumb{width:10px;height:10px;border-radius:50%;background:var(--axac);border:2px solid #0d1015}
+  #ax .axv{min-width:42px;text-align:center;background:#07090c;border:1px solid #171c25;border-radius:4px;padding:3px 6px;font-size:11px;color:#d0d7e2}
+  #ax select{-webkit-appearance:none;appearance:none;min-width:118px;background:#07090c url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238a95a5' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 9px center;border:1px solid #171c25;border-radius:4px;color:#d0d7e2;font:600 12px "Segoe UI",Arial,sans-serif;padding:5px 26px 5px 10px;outline:none;cursor:pointer}
+  #ax select:focus{border-color:var(--axac)}
+  #ax option{background:#0b0d11;color:#d0d7e2}
+  #ax input[type=color]{-webkit-appearance:none;appearance:none;width:34px;height:18px;padding:0;border:1px solid #232b37;border-radius:4px;background:none;cursor:pointer}
+  #ax input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+  #ax input[type=color]::-webkit-color-swatch{border:none;border-radius:3px}
+  #ax .axbtn{margin:6px 14px 4px;padding:8px 10px;text-align:center;background:#11151b;border:1px solid #1b212b;border-radius:5px;color:#d3dae5;font-weight:700;cursor:pointer;transition:border-color .12s,background .12s}
+  #ax .axbtn:hover{border-color:var(--axac);background:#141a22}
+  #ax .axnote{padding:6px 14px 8px;font-size:12px;line-height:1.5;color:#5f6b7c}
+  #ax .axnote b{color:#9aa6b6}
+  #ax .axempty{display:none;padding:40px;text-align:center;color:#4d5868}
+  #ax.searching.none .axempty{display:block}
 </style>
 </head>
 <body>
 <div id="game"></div>
 <div id="vignette"></div>
 <canvas id="esp"></canvas>
-<div id="cheatHud" class="hud"></div>
 
 <div id="radarWrap" class="hud"><canvas id="radar" width="176" height="176"></canvas></div>
 
@@ -2378,7 +2441,7 @@ class Bot {
     this.flashT = 0.05;
     sfxAt(this.x, this.z, 0.35 + W.snd * 0.35, W.tone, 0.12 + W.snd * 0.16, false, W.id);
     if (hit) {
-      const head = Math.random() < diff.hs;
+      const head = Math.random() < diff.hs * axHeadMul(t);
       let dmg = (t.isPlayer ? F.dmgP : F.dmgB) * rand(0.8, 1.2) * diff.dmg;
       if (head) dmg *= (this.weapon === 'awp' ? 1.5 : 3);
       damageEntity(t, dmg, this, head, this.weapon);
@@ -4137,7 +4200,7 @@ document.addEventListener('pointerlockchange', () => {
     lockEverWorked = true;
     gotInput();
   } else {
-    if (state !== 'menu') {
+    if (state !== 'menu' && !axOpen) {
       paused = true;
       if (state !== 'matchend') {
         $('ovInfo').textContent = 'PAUSED';
@@ -4296,10 +4359,42 @@ buildSettingsUI();
 applySettings();
 camera.fov = settings.fov; camera.updateProjectionMatrix();
 
-// ================================================================ CHEAT MENU (single-player debug tools)
-// Hotkeys in game: F1 aimbot, F2 triggerbot, F3 wallhack ESP. Fine-tune everything in the pause menu -> CHEATS.
-const cheat = { aim: false, trig: false, esp: false, aimFov: 15, aimSmooth: 70, aimHead: true, aimVisible: true, aimOnFire: false,
-  espBox: true, espHp: true, espName: true, espDist: true };
+// ================================================================ AXIOM cheat menu (single-player only)
+// INSERT (or `) opens / closes the menu. F1 aimbot, F2 triggerbot, F3 ESP work as quick toggles in game.
+const CHEAT_DEFAULT = {
+  // aimbot
+  aim: false, aimMode: 'Always', aimHitbox: 'Head', aimPrio: 'Crosshair', aimFov: 15, aimSmooth: 70, aimVisible: true, aimCircle: true,
+  rcs: 0, noSpread: false, autoScope: false,
+  // triggerbot
+  trig: false, trigDelay: 0, trigHead: false,
+  // players / esp
+  esp: false, espBox: true, espBoxStyle: 'Corner', espHp: true, espName: true, espDist: true, espWeapon: true, espHead: false, espLines: false,
+  espSkel: false, espArrows: false, arrowR: 260, arrowCol: '#ff5a5a',
+  crossStyle: 'Off', crossCol: '#00ff66', crossSize: 8, crossThick: 2, crossGap: 4, crossOutline: true, crossDyn: false,
+  espVisCol: '#ffe14a', espHidCol: '#ff3b3b', chams: false, chamCol: '#00b0ff', radar: false,
+  // world / view
+  noFlash: false, espDrops: false, espBomb: true, watermark: true, binds: true,
+  // movement
+  speed: 1, gravity: 1, fastDefuse: false, autoHop: false, autoStrafe: false,
+  // cheats
+  god: false, ammo: false, fastFire: 1, money: false, buyAny: false, freeze: false,
+  // third person / model / network
+  tp: false, tpDist: 3.2, tpSide: 0.35, tpWall: true, tpSpin: 'Off', tpSpinSpeed: 720, tpJit: 60, tpTuck: true, headProt: 85, lagMs: 0, lagJit: 0,
+  ping: false, pingBase: 45, pingJit: 25,
+  // ui
+  accent: '#00a8ff',
+};
+const cheat = Object.assign({}, CHEAT_DEFAULT);
+function axLoad() {
+  try {
+    const s = JSON.parse(localStorage.getItem('axiomCheatCfg') || '{}');
+    for (const k in CHEAT_DEFAULT) if (s[k] !== undefined && typeof s[k] === typeof CHEAT_DEFAULT[k]) cheat[k] = s[k];
+    return Object.keys(s).length > 0;
+  } catch (e) { return false; }
+}
+function axSave() { try { localStorage.setItem('axiomCheatCfg', JSON.stringify(cheat)); return true; } catch (e) { return false; } }
+axLoad();
+
 const espCv = $('esp'), eg = espCv.getContext('2d');
 function sizeEsp() {
   const d = Math.min(window.devicePixelRatio || 1, 2);
@@ -4308,24 +4403,105 @@ function sizeEsp() {
 }
 sizeEsp(); window.addEventListener('resize', sizeEsp);
 
+// ---------------------------------------------------------------- engine hooks
+{
+  const _spread = currentSpread;
+  currentSpread = function (w) { return cheat.noSpread ? 0 : _spread(w); };
+  const _move = moveEntity;
+  moveEntity = function (e, dx, dz, r) {
+    if (e === P && cheat.speed !== 1) { dx *= cheat.speed; dz *= cheat.speed; }
+    return _move(e, dx, dz, r);
+  };
+  const _dmg = damageEntity;
+  damageEntity = function (t, dmg, att, head, wid) { if (cheat.god && t === P) return false; return _dmg(t, dmg, att, head, wid); };
+  const _buy = canBuy;
+  canBuy = function () { return (cheat.buyAny && P.alive) || _buy(); };
+  const _bot = Bot.prototype.update;
+  Bot.prototype.update = function (dt) { if (cheat.freeze && this.team !== P.team) return; return _bot.call(this, dt); };
+}
+
+// ---------------------------------------------------------------- third person camera + player model + fake lag / ping
+let tpTuckA = 0;
+// bots roll their headshot chance through this: while a spin style is active the head is much harder to hit
+function axHeadMul(t) { return (t === P && cheat.tpSpin !== 'Off') ? 1 - cheat.headProt / 100 : 1; }
+let tpModel = null, tpTeam = null, tpGun = '', tpWalk = 0, tpSpinA = 0, tpJitT = 0, tpJitS = 1, tpLastT = performance.now();
+const tpLag = { x: 0, y: 0, z: 0, yaw: 0, t: 0, next: 0 };
+function tpEnsureModel() {
+  if (tpModel && tpTeam !== P.team) { scene.remove(tpModel); tpModel = null; }
+  if (!tpModel) { tpModel = makeHuman(P.team, 1); tpTeam = P.team; tpGun = ''; scene.add(tpModel); tpModel.visible = false; }
+}
+function tpActive() {
+  if (!cheat.tp || !P.alive || state === 'menu') return false;
+  const w = curW();
+  return !(w && w.scope && P.zoom > 0);                       // scoping snaps back to first person
+}
+function tpPrep() {
+  const now = performance.now(), dt = Math.min(0.05, (now - tpLastT) / 1000); tpLastT = now;
+  if (!tpActive()) { if (tpModel) tpModel.visible = false; return; }
+  tpEnsureModel();
+  // ---- camera: pull back along the view direction, shortened by walls
+  const rot = camera.rotation, fwd = lookDir(rot.x, rot.y);
+  const ox = camera.position.x, oy = camera.position.y, oz = camera.position.z;
+  let d = cheat.tpDist;
+  if (cheat.tpWall) { const r = worldRay(ox, oy, oz, -fwd.x, -fwd.y, -fwd.z, d + 0.3); if (r && r.t < d + 0.3) d = Math.max(0.35, r.t - 0.3); }
+  const rx = Math.cos(rot.y), rz = -Math.sin(rot.y);
+  camera.position.set(ox - fwd.x * d + rx * cheat.tpSide, Math.max(0.15, oy - fwd.y * d), oz - fwd.z * d + rz * cheat.tpSide);
+  vm.visible = false;                                          // no floating first-person gun
+  // ---- model: weapon, walk cycle, crouch
+  const m = tpModel, U = m.userData, w = curW();
+  if (w && !w.nade && tpGun !== w.id) { try { buildBotGun(U, w.id); tpGun = w.id; } catch (e) {} }
+  const spd = Math.hypot(P.vx, P.vz), moving = spd > 1.5 && P.onGround;
+  tpWalk += dt * (moving ? 9 * Math.min(1.6, spd / 5.6) : 0);
+  const sw = moving ? Math.sin(tpWalk) * 0.7 : 0;
+  U.legL.rotation.x = sw; U.legR.rotation.x = -sw;
+  U.kneeL.rotation.x = -Math.max(0, -sw) * 0.9; U.kneeR.rotation.x = -Math.max(0, sw) * 0.9;
+  // ---- visual spin / anti-aim style
+  let off = 0;
+  if (cheat.tpSpin === 'Spin') { tpSpinA += cheat.tpSpinSpeed * Math.PI / 180 * dt; off = tpSpinA; }
+  else if (cheat.tpSpin === 'Jitter') { tpJitT += dt; if (tpJitT > 0.08) { tpJitT = 0; tpJitS = -tpJitS; } off = tpJitS * cheat.tpJit * Math.PI / 180; }
+  else if (cheat.tpSpin === 'Backwards') off = Math.PI;
+  else if (cheat.tpSpin === 'Sideways') off = Math.PI / 2;
+  // ---- fake lag: the model only updates in choked bursts
+  tpLag.t += dt * 1000;
+  if (cheat.lagMs <= 0 || tpLag.t >= tpLag.next) {
+    tpLag.x = P.x; tpLag.y = P.y; tpLag.z = P.z; tpLag.yaw = P.yaw; tpLag.t = 0;
+    tpLag.next = Math.max(16, cheat.lagMs + (Math.random() * 2 - 1) * cheat.lagJit);
+  }
+  const wantTuck = (cheat.tpTuck && cheat.tpSpin !== 'Off') ? 0.6 : 0;          // lean forward, chin down
+  tpTuckA += (wantTuck - tpTuckA) * Math.min(1, 8 * dt);
+  m.rotation.x = -tpTuckA;
+  m.position.set(tpLag.x, tpLag.y, tpLag.z); m.rotation.y = tpLag.yaw + off; m.scale.y = lerp(1, 0.8, P.crouchT);
+  m.visible = true;
+}
+{
+  const _rr = renderer.render.bind(renderer);
+  renderer.render = function (sc, cam) { if (sc === scene && cam === camera) tpPrep(); return _rr(sc, cam); };
+}
+let pingVal = 0, pingT = 0, pingSpike = 0;
+function pingTick(dt) {
+  pingT -= dt; pingSpike = Math.max(0, pingSpike - dt);
+  if (pingT <= 0) { pingT = 0.25; pingVal = Math.max(1, Math.round(cheat.pingBase + (Math.random() * 2 - 1) * cheat.pingJit + (pingSpike > 0 ? 180 * Math.min(1, pingSpike) : 0))); }
+}
+
+// ---------------------------------------------------------------- aimbot / triggerbot
+const HITBOX = { Head: 1.68, Chest: 1.3, Stomach: 0.95 };
 const cheatEnemies = () => bots.filter(b => b.alive && b.team !== P.team && !(b.prot > 0));
-const aimY = b => b.y + (cheat.aimHead ? 1.68 : 1.3);
+const aimY = b => b.y + HITBOX[cheat.aimHitbox];
 
 function pickAimTarget() {
   const ex = P.x, ey = eyeY(), ez = P.z, f = lookDir(P.pitch, P.yaw);
-  let best = null, bestAng = 1e9;
+  let best = null, bestScore = 1e9;
   for (const b of cheatEnemies()) {
     const ay = aimY(b), dx = b.x - ex, dy = ay - ey, dz = b.z - ez, L = Math.hypot(dx, dy, dz) || 1;
     const ang = Math.acos(clamp((f.x * dx + f.y * dy + f.z * dz) / L, -1, 1)) * 180 / Math.PI;
-    if (ang > cheat.aimFov || ang >= bestAng) continue;
+    if (ang > cheat.aimFov) continue;
     if (cheat.aimVisible && !losClear(ex, ey, ez, b.x, ay, b.z)) continue;
-    best = b; bestAng = ang;
+    const score = cheat.aimPrio === 'Distance' ? L : cheat.aimPrio === 'Lowest HP' ? b.hp : ang;
+    if (score < bestScore) { best = b; bestScore = score; }
   }
   return best;
 }
-function cheatAim(dt) {
-  const b = pickAimTarget();
-  if (!b) return;
+function cheatAim(dt, b) {
   const ex = P.x, ey = eyeY(), ez = P.z, dx = b.x - ex, dy = aimY(b) - ey, dz = b.z - ez;
   const ty = Math.atan2(-dx, -dz), tp = Math.atan2(dy, Math.hypot(dx, dz));
   const k = cheat.aimSmooth >= 100 ? 1 : 1 - Math.exp(-cheat.aimSmooth * 0.5 * dt);
@@ -4333,25 +4509,86 @@ function cheatAim(dt) {
   P.yaw += angDiff(P.yaw, ty - P.punchYaw) * k;
   P.pitch = clamp(P.pitch + (tp - P.punch - P.pitch) * k, -1.5, 1.5);
 }
-function crosshairOnEnemy() {
+function crosshairOnEnemy(headOnly) {
   const d = lookDir(P.pitch + P.punch, P.yaw + P.punchYaw), ox = P.x, oy = eyeY(), oz = P.z;
   const wr = worldRay(ox, oy, oz, d.x, d.y, d.z, 150);
   for (const b of cheatEnemies()) {
-    const r = rayAABB(ox, oy, oz, d.x, d.y, d.z, [b.x - 0.35, b.y, b.z - 0.35], [b.x + 0.35, b.y + 1.8, b.z + 0.35]);
+    const r = rayAABB(ox, oy, oz, d.x, d.y, d.z, [b.x - 0.35, b.y + (headOnly ? 1.5 : 0), b.z - 0.35], [b.x + 0.35, b.y + 1.8, b.z + 0.35]);
     if (r && r.t < wr.t) return true;
   }
   return false;
 }
+let trigT = 0, axMouseDX = 0;
+document.addEventListener('mousemove', e => { axMouseDX += e.movementX || 0; });
+const axInj = new Set();
+function axKey(k, on) {
+  if (on) { if (!keys.has(k)) { keys.add(k); axInj.add(k); } }
+  else if (axInj.has(k)) { keys.delete(k); axInj.delete(k); }
+}
+function bhopTick(dt) {
+  const dx = axMouseDX; axMouseDX = 0;
+  for (const k of [...axInj]) if (!keys.has(k)) axInj.delete(k);       // the player released an injected key
+  const real = k => keys.has(k) && !axInj.has(k);
+  const moving = real('KeyW') || real('KeyA') || real('KeyS') || real('KeyD');
+  axKey('Space', cheat.autoHop && moving && state !== 'freeze');
+  const air = cheat.autoStrafe && keys.has('Space') && !P.onGround;
+  axKey('KeyW', air && !real('KeyS'));
+  axKey('KeyD', air && dx > 1);
+  axKey('KeyA', air && dx < -1);
+  if (air) {                                                         // air-strafe speed gain, capped
+    const sp = Math.hypot(P.vx, P.vz);
+    if (sp > 1 && sp < 9) { const g = 1 + 3.5 * dt; P.vx *= g; P.vz *= g; }
+  }
+}
 function cheatTick(dt) {
-  if (!(locked || fakeLock) || paused || !P.alive || state !== 'live') return;
-  if (cheat.aim && (!cheat.aimOnFire || trigger)) cheatAim(dt);
-  if (cheat.trig && !P.defusing && !P.planting && !buyOpen) {
-    const w = curW();
-    if (!w.melee && !w.nade && crosshairOnEnemy()) tryFire();
+  // --- always-on tweaks (they only need a live round)
+  if (cheat.autoHop || cheat.autoStrafe || axInj.size) { if (P.alive && !paused) bhopTick(dt); }
+  if (cheat.noFlash) P.blindT = 0;
+  if (cheat.radar) for (const b of cheatEnemies()) b.spotT = Math.max(b.spotT, 0.8);
+  if (!P.alive) return;
+  if (cheat.money) P.money = 16000;
+  if (cheat.rcs > 0) { const k = cheat.rcs / 100; P.punch -= P.punch * k; P.punchYaw -= P.punchYaw * k; }
+  if (cheat.gravity < 1 && !P.onGround) P.vy += 16 * dt * (1 - cheat.gravity);
+  if (cheat.fastFire > 1) P.fireCd -= dt * (cheat.fastFire - 1);
+  if (cheat.fastDefuse) { if (P.defusing) P.defuseT = 99; if (P.planting) P.plantT = 99; }
+  const w = curW(), s = curState();
+  if (!s || !w) return;
+  if (cheat.ammo && !w.melee && !w.nade) { s.mag = w.mag; s.reserve = Math.max(s.reserve, w.reserve); }
+  if (!(locked || fakeLock) || state !== 'live') return;
+  // --- aimbot
+  if (cheat.aim && (cheat.aimMode === 'Always' || trigger)) {
+    const t = pickAimTarget();
+    if (t) {
+      if (cheat.autoScope && w.scope && P.zoom === 0) P.zoom = 1;
+      cheatAim(dt, t);
+    }
+  }
+  // --- triggerbot
+  if (cheat.trig && !P.defusing && !P.planting && !buyOpen && !w.melee && !w.nade) {
+    if (crosshairOnEnemy(cheat.trigHead)) {
+      trigT += dt;
+      if (cheat.autoScope && w.scope && P.zoom === 0) P.zoom = 1;
+      if (trigT * 1000 >= cheat.trigDelay) tryFire();
+    } else trigT = 0;
+  } else trigT = 0;
+}
+
+// ---------------------------------------------------------------- chams (glow through walls)
+let chamMat = null;
+function applyChams() {
+  if (!chamMat) chamMat = new THREE.MeshBasicMaterial({ color: cheat.chamCol, transparent: true, opacity: 0.55, depthTest: false, depthWrite: false });
+  chamMat.color.set(cheat.chamCol);
+  for (const b of bots) {
+    const want = cheat.chams && b.team !== P.team && b.alive;
+    b.mesh.traverse(o => {
+      if (!o.isMesh) return;
+      if (want && !o.userData.cham) { o.userData.cham = true; o.userData.origMat = o.material; o.material = chamMat; o.renderOrder = 999; }
+      else if (!want && o.userData.cham) { o.userData.cham = false; o.material = o.userData.origMat; o.renderOrder = 0; }
+    });
   }
 }
 
-// ---- wallhack: 2D overlay, boxes + health bars through walls
+// ---------------------------------------------------------------- ESP overlay
 const _pv = new THREE.Vector3();
 function toScreen(x, y, z) {
   _pv.set(x, y, z).applyMatrix4(camera.matrixWorldInverse);
@@ -4359,98 +4596,519 @@ function toScreen(x, y, z) {
   _pv.applyMatrix4(camera.projectionMatrix);
   return { x: (_pv.x * 0.5 + 0.5) * window.innerWidth, y: (-_pv.y * 0.5 + 0.5) * window.innerHeight };
 }
-function drawEsp() {
-  eg.clearRect(0, 0, window.innerWidth, window.innerHeight);
-  if (state === 'menu' || paused || !P.alive) return;
-  if (cheat.aim) {
-    const r = Math.tan(cheat.aimFov * Math.PI / 180) / Math.tan(camera.fov * Math.PI / 360) * window.innerHeight / 2;
-    eg.strokeStyle = 'rgba(255,255,255,.35)'; eg.lineWidth = 1;
-    eg.beginPath(); eg.arc(window.innerWidth / 2, window.innerHeight / 2, Math.min(r, 2000), 0, TAU); eg.stroke();
+function boxPath(x, y, w, h) {
+  eg.beginPath();
+  if (cheat.espBoxStyle === 'Corner') {
+    const l = Math.max(4, Math.min(w, h) * 0.3);
+    eg.moveTo(x, y + l); eg.lineTo(x, y); eg.lineTo(x + l, y);
+    eg.moveTo(x + w - l, y); eg.lineTo(x + w, y); eg.lineTo(x + w, y + l);
+    eg.moveTo(x + w, y + h - l); eg.lineTo(x + w, y + h); eg.lineTo(x + w - l, y + h);
+    eg.moveTo(x + l, y + h); eg.lineTo(x, y + h); eg.lineTo(x, y + h - l);
+  } else eg.rect(x, y, w, h);
+}
+function label(t, x, y, col) {
+  eg.lineWidth = 3; eg.strokeStyle = '#000'; eg.strokeText(t, x, y);
+  eg.fillStyle = col || '#fff'; eg.fillText(t, x, y);
+}
+const SK_PTS = { head: [0, 1.68, 0], neck: [0, 1.55, 0], chest: [0, 1.38, 0], abdo: [0, 1.17, 0], pelvis: [0, 0.95, 0],
+  shL: [-0.26, 1.46, 0], shR: [0.26, 1.46, 0], elL: [-0.3, 1.2, -0.12], elR: [0.3, 1.22, -0.2], haL: [-0.1, 1.1, -0.4], haR: [0.12, 1.15, -0.42],
+  hipL: [-0.1, 0.93, 0], hipR: [0.1, 0.93, 0], knL: [-0.11, 0.5, -0.02], knR: [0.11, 0.5, -0.02], ftL: [-0.11, 0.03, 0], ftR: [0.11, 0.03, 0] };
+const SK_LINES = [['head', 'neck'], ['neck', 'chest'], ['chest', 'abdo'], ['abdo', 'pelvis'], ['neck', 'shL'], ['neck', 'shR'], ['shL', 'elL'], ['elL', 'haL'],
+  ['shR', 'elR'], ['elR', 'haR'], ['pelvis', 'hipL'], ['pelvis', 'hipR'], ['hipL', 'knL'], ['knL', 'ftL'], ['hipR', 'knR'], ['knR', 'ftR']];
+function drawSkeleton(b, col) {
+  const yaw = b.mesh ? b.mesh.rotation.y : b.yaw, c = Math.cos(yaw), sn = Math.sin(yaw), sp = {};
+  for (const k in SK_PTS) {
+    const q = SK_PTS[k];
+    sp[k] = toScreen(b.x + q[0] * c + q[2] * sn, b.y + q[1], b.z - q[0] * sn + q[2] * c);
+    if (!sp[k]) return;
   }
-  if (!cheat.esp) return;
+  eg.beginPath();
+  for (const l of SK_LINES) { eg.moveTo(sp[l[0]].x, sp[l[0]].y); eg.lineTo(sp[l[1]].x, sp[l[1]].y); }
+  eg.lineCap = 'round'; eg.lineWidth = 3.5; eg.strokeStyle = 'rgba(0,0,0,.6)'; eg.stroke();
+  eg.lineWidth = 1.6; eg.strokeStyle = col; eg.stroke(); eg.lineCap = 'butt';
+}
+function drawArrow(b) {
+  const W = window.innerWidth, H = window.innerHeight;
+  const th = -angDiff(P.yaw, Math.atan2(-(b.x - P.x), -(b.z - P.z)));    // clockwise angle from "up"
+  const R = Math.min(cheat.arrowR, Math.min(W, H) / 2 - 20), px = W / 2 + Math.sin(th) * R, py = H / 2 - Math.cos(th) * R;
+  const dist = Math.hypot(b.x - P.x, b.z - P.z);
+  eg.save(); eg.translate(px, py); eg.rotate(th); eg.globalAlpha = clamp(1.15 - dist / 70, 0.4, 1);
+  eg.beginPath(); eg.moveTo(0, -13); eg.lineTo(10, 9); eg.lineTo(0, 4); eg.lineTo(-10, 9); eg.closePath();
+  eg.lineWidth = 3; eg.strokeStyle = '#000'; eg.stroke(); eg.fillStyle = cheat.arrowCol; eg.fill();
+  eg.restore();
+}
+function drawCrosshair() {
+  const st = cheat.crossStyle;
+  if (st === 'Off') return;
+  const w = curW();
+  if (P.zoom > 0 && w && w.scope) return;
+  const W = window.innerWidth, H = window.innerHeight, cx = W / 2, cy = H / 2, sz = cheat.crossSize, th = cheat.crossThick;
+  let gap = cheat.crossGap;
+  if (cheat.crossDyn && w && !w.melee && !w.nade) gap += currentSpread(w) * H / (2 * Math.tan(camera.fov * Math.PI / 360));
+  const arms = (top) => {
+    eg.beginPath();
+    eg.moveTo(cx - gap, cy); eg.lineTo(cx - gap - sz, cy); eg.moveTo(cx + gap, cy); eg.lineTo(cx + gap + sz, cy);
+    eg.moveTo(cx, cy + gap); eg.lineTo(cx, cy + gap + sz);
+    if (top) { eg.moveTo(cx, cy - gap); eg.lineTo(cx, cy - gap - sz); }
+  };
+  const draw = fn => {
+    if (cheat.crossOutline) { fn(); eg.lineWidth = th + 2; eg.strokeStyle = '#000'; eg.fillStyle = '#000'; eg.stroke(); }
+    fn(); eg.lineWidth = th; eg.strokeStyle = cheat.crossCol; eg.fillStyle = cheat.crossCol; eg.stroke();
+  };
+  const dot = r => () => { eg.beginPath(); eg.arc(cx, cy, r, 0, TAU); };
+  if (st === 'Cross') draw(() => arms(true));
+  else if (st === 'T-shape') draw(() => arms(false));
+  else if (st === 'Plus + dot') { draw(() => arms(true)); draw(dot(Math.max(1, th * 0.7))); eg.beginPath(); eg.arc(cx, cy, Math.max(1, th * 0.7), 0, TAU); eg.fill(); }
+  else if (st === 'Circle') draw(dot(gap + sz / 2));
+  else if (st === 'Dot') { const r = Math.max(1.5, th * 0.9); if (cheat.crossOutline) { eg.beginPath(); eg.arc(cx, cy, r + 1.2, 0, TAU); eg.fillStyle = '#000'; eg.fill(); } eg.beginPath(); eg.arc(cx, cy, r, 0, TAU); eg.fillStyle = cheat.crossCol; eg.fill(); }
+}
+function drawEsp() {
+  applyChams();
+  eg.clearRect(0, 0, window.innerWidth, window.innerHeight);
+  if (state === 'menu' || (paused && !axOpen) || !P.alive) return;
+  const W = window.innerWidth, H = window.innerHeight;
+  if (cheat.aim && cheat.aimCircle) {
+    const r = Math.tan(cheat.aimFov * Math.PI / 180) / Math.tan(camera.fov * Math.PI / 360) * H / 2;
+    eg.strokeStyle = 'rgba(255,255,255,.35)'; eg.lineWidth = 1;
+    eg.beginPath(); eg.arc(W / 2, H / 2, Math.min(r, 3000), 0, TAU); eg.stroke();
+  }
+  drawCrosshair();
+  if (!cheat.esp && !cheat.espArrows) return;
   const maxHp = MODE === 'train' ? 100 : Math.round(100 * diff.hpM), ey = eyeY();
   eg.textAlign = 'center'; eg.font = 'bold 12px "Segoe UI",sans-serif';
   for (const b of bots) {
     if (!b.alive || b.team === P.team) continue;
+    if (cheat.espArrows) { const m = toScreen(b.x, b.y + 0.9, b.z); if (!m || m.x < 0 || m.x > W || m.y < 0 || m.y > H) drawArrow(b); }
+    if (!cheat.esp) continue;
     const feet = toScreen(b.x, b.y, b.z), head = toScreen(b.x, b.y + 1.85, b.z);
     if (!feet || !head) continue;
     const h = feet.y - head.y, w = h * 0.5, x = head.x - w / 2, y = head.y;
     if (h < 4) continue;
     const seen = losClear(P.x, ey, P.z, b.x, b.y + 1.3, b.z);
+    const col = seen ? cheat.espVisCol : cheat.espHidCol;
+    if (cheat.espLines) {
+      eg.strokeStyle = col; eg.globalAlpha = 0.6; eg.lineWidth = 1.2;
+      eg.beginPath(); eg.moveTo(W / 2, H); eg.lineTo(feet.x, feet.y); eg.stroke(); eg.globalAlpha = 1;
+    }
     if (cheat.espBox) {
-      eg.lineWidth = 4; eg.strokeStyle = 'rgba(0,0,0,.7)'; eg.strokeRect(x, y, w, h);
-      eg.lineWidth = 2; eg.strokeStyle = seen ? '#ffe14a' : '#ff3b3b'; eg.strokeRect(x, y, w, h);
+      boxPath(x, y, w, h); eg.lineWidth = 4; eg.strokeStyle = 'rgba(0,0,0,.7)'; eg.stroke();
+      boxPath(x, y, w, h); eg.lineWidth = 2; eg.strokeStyle = col; eg.stroke();
+    }
+    if (cheat.espSkel) drawSkeleton(b, col);
+    if (cheat.espHead) {
+      const hd = toScreen(b.x, b.y + 1.68, b.z);
+      if (hd) { eg.beginPath(); eg.arc(hd.x, hd.y, Math.max(2, h * 0.055), 0, TAU); eg.lineWidth = 2; eg.strokeStyle = '#000'; eg.stroke(); eg.fillStyle = col; eg.fill(); }
     }
     if (cheat.espHp) {
-      const f = clamp(b.hp / maxHp, 0, 1), bw = 5, bx = x - bw - 4;
+      const f = clamp(b.hp / maxHp, 0, 1), bw = 4, bx = x - bw - 5;
       eg.fillStyle = 'rgba(0,0,0,.75)'; eg.fillRect(bx - 1, y - 1, bw + 2, h + 2);
       eg.fillStyle = 'hsl(' + Math.round(f * 120) + ',100%,50%)'; eg.fillRect(bx, y + h * (1 - f), bw, h * f);
     }
-    eg.fillStyle = '#fff'; eg.strokeStyle = '#000'; eg.lineWidth = 3;
-    if (cheat.espName) { eg.strokeText(b.name + '  ' + Math.ceil(b.hp), head.x, y - 5); eg.fillText(b.name + '  ' + Math.ceil(b.hp), head.x, y - 5); }
-    if (cheat.espDist) { const t = Math.round(Math.hypot(b.x - P.x, b.z - P.z)) + 'm'; eg.strokeText(t, head.x, y + h + 14); eg.fillText(t, head.x, y + h + 14); }
+    if (cheat.espName) label(b.name + (cheat.espHp ? '  ' + Math.ceil(b.hp) : ''), head.x, y - 6);
+    let by = y + h + 13;
+    if (cheat.espWeapon && WEAPONS[b.weapon]) { label(WEAPONS[b.weapon].name, head.x, by, '#9fd6ff'); by += 13; }
+    if (cheat.espDist) label(Math.round(Math.hypot(b.x - P.x, b.z - P.z)) + 'm', head.x, by, '#cfd6e0');
+  }
+  if (cheat.esp && cheat.espDrops) {
+    for (const d of drops) {
+      const p = toScreen(d.x, 0.35, d.z);
+      if (p && WEAPONS[d.id]) label(WEAPONS[d.id].name, p.x, p.y, '#b6ff8a');
+    }
+  }
+  if (cheat.esp && cheat.espBomb) {
+    if (bomb.planted) { const p = toScreen(bomb.x, 0.4, bomb.z); if (p) label('C4  ' + Math.max(0, bomb.timer).toFixed(1) + 's', p.x, p.y, '#ff5a3a'); }
+    else if (bomb.dropped) { const p = toScreen(bomb.dropped.x, 0.4, bomb.dropped.z); if (p) label('C4', p.x, p.y, '#ff5a3a'); }
   }
 }
 
-// ---- menu panel + HUD + hotkeys
-const CHEAT_DEFS = [
-  { g: 'AIMBOT  [F1]', k: 'aim', t: 'check', label: 'Enable aimbot' },
-  { k: 'aimOnFire', t: 'check', label: 'Only while firing (hold LMB)' },
-  { k: 'aimHead', t: 'check', label: 'Aim at head (off = chest)' },
-  { k: 'aimVisible', t: 'check', label: 'Visible targets only (ignore walls)' },
-  { k: 'aimFov', t: 'range', label: 'Aim FOV (degrees)', min: 1, max: 90, step: 1 },
-  { k: 'aimSmooth', t: 'range', label: 'Speed (100 = instant snap)', min: 5, max: 100, step: 1 },
-  { g: 'TRIGGERBOT  [F2]', k: 'trig', t: 'check', label: 'Auto-fire when crosshair is on an enemy' },
-  { g: 'WALLHACK  [F3]', k: 'esp', t: 'check', label: 'Enable ESP' },
-  { k: 'espBox', t: 'check', label: 'Boxes (yellow = visible, red = behind wall)' },
-  { k: 'espHp', t: 'check', label: 'Health bars' },
-  { k: 'espName', t: 'check', label: 'Name + HP' },
-  { k: 'espDist', t: 'check', label: 'Distance' },
+// ---------------------------------------------------------------- menu definition
+const AX_TABS = [
+  { g: 'AIMBOT' },
+  { id: 'aim', name: 'Legitbot', ico: 'aim', cols: [
+    [ { title: 'Aimbot', rows: [
+        { t: 'check', k: 'aim', label: 'Enable aimbot', hint: 'F1' },
+        { t: 'select', k: 'aimMode', label: 'Activation', opts: ['Always', 'While firing'] },
+        { t: 'select', k: 'aimHitbox', label: 'Hitbox', opts: ['Head', 'Chest', 'Stomach'] },
+        { t: 'select', k: 'aimPrio', label: 'Target priority', opts: ['Crosshair', 'Distance', 'Lowest HP'] },
+        { t: 'range', k: 'aimFov', label: 'Field of view', min: 1, max: 90, step: 1, unit: '°' },
+        { t: 'range', k: 'aimSmooth', label: 'Speed', min: 5, max: 100, step: 1, unit: '%' },
+        { t: 'check', k: 'aimVisible', label: 'Visible targets only' },
+        { t: 'check', k: 'aimCircle', label: 'Draw FOV circle' },
+    ] } ],
+    [ { title: 'Weapon', rows: [
+        { t: 'range', k: 'rcs', label: 'Recoil control', min: 0, max: 100, step: 1, unit: '%' },
+        { t: 'check', k: 'noSpread', label: 'Remove spread' },
+        { t: 'check', k: 'autoScope', label: 'Auto scope' },
+      ] },
+      { title: 'Triggerbot', rows: [
+        { t: 'check', k: 'trig', label: 'Enable triggerbot', hint: 'F2' },
+        { t: 'range', k: 'trigDelay', label: 'Reaction delay', min: 0, max: 400, step: 10, unit: 'ms' },
+        { t: 'check', k: 'trigHead', label: 'Head only' },
+    ] } ],
+  ] },
+  { g: 'VISUALS' },
+  { id: 'esp', name: 'Players', ico: 'eye', cols: [
+    [ { title: 'ESP', rows: [
+        { t: 'check', k: 'esp', label: 'Enable wallhack', hint: 'F3' },
+        { t: 'check', k: 'espBox', label: 'Boxes' },
+        { t: 'select', k: 'espBoxStyle', label: 'Box type', opts: ['Corner', 'Full'] },
+        { t: 'check', k: 'espHp', label: 'Health bar' },
+        { t: 'check', k: 'espName', label: 'Name' },
+        { t: 'check', k: 'espWeapon', label: 'Weapon' },
+        { t: 'check', k: 'espDist', label: 'Distance' },
+        { t: 'check', k: 'espHead', label: 'Head dot' },
+        { t: 'check', k: 'espSkel', label: 'Skeleton' },
+        { t: 'check', k: 'espLines', label: 'Snaplines' },
+    ] } ],
+    [ { title: 'Colors', rows: [
+        { t: 'color', k: 'espVisCol', label: 'Visible' },
+        { t: 'color', k: 'espHidCol', label: 'Behind wall' },
+      ] },
+      { title: 'Glow', rows: [
+        { t: 'check', k: 'chams', label: 'Chams (see-through glow)' },
+        { t: 'color', k: 'chamCol', label: 'Chams color' },
+      ] },
+      { title: 'Off-screen', rows: [
+        { t: 'check', k: 'espArrows', label: 'Arrows to enemies' },
+        { t: 'range', k: 'arrowR', label: 'Arrow radius', min: 80, max: 480, step: 10, unit: 'px' },
+        { t: 'color', k: 'arrowCol', label: 'Arrow color' },
+      ] },
+      { title: 'Radar', rows: [
+        { t: 'check', k: 'radar', label: 'Reveal enemies on radar' },
+    ] } ],
+  ] },
+  { id: 'cross', name: 'Crosshair', ico: 'cross', cols: [
+    [ { title: 'Custom crosshair', rows: [
+        { t: 'select', k: 'crossStyle', label: 'Style', opts: ['Off', 'Cross', 'Plus + dot', 'T-shape', 'Dot', 'Circle'] },
+        { t: 'color', k: 'crossCol', label: 'Color' },
+        { t: 'range', k: 'crossSize', label: 'Length', min: 2, max: 30, step: 1, unit: 'px' },
+        { t: 'range', k: 'crossThick', label: 'Thickness', min: 1, max: 8, step: 1, unit: 'px' },
+        { t: 'range', k: 'crossGap', label: 'Gap', min: 0, max: 20, step: 1, unit: 'px' },
+        { t: 'check', k: 'crossOutline', label: 'Outline' },
+        { t: 'check', k: 'crossDyn', label: 'Expand with spread' },
+    ] } ],
+    [ { title: 'Info', rows: [
+        { t: 'note', html: 'Pick any style other than <b>Off</b> to replace the game crosshair. It hides itself while scoped.' },
+    ] } ],
+  ] },
+  { id: 'cam', name: 'Third person', ico: 'cam', cols: [
+    [ { title: 'Third person', rows: [
+        { t: 'check', k: 'tp', label: 'Enable third person', hint: 'F4' },
+        { t: 'range', k: 'tpDist', label: 'Distance', min: 1, max: 8, step: 0.1, unit: 'm' },
+        { t: 'range', k: 'tpSide', label: 'Shoulder offset', min: -1.5, max: 1.5, step: 0.05, unit: 'm' },
+        { t: 'check', k: 'tpWall', label: 'Pull in at walls' },
+        { t: 'note', html: 'Scoping with the AWP / Scout snaps back to first person. Bullets still leave from your eyes, so aim with the crosshair as usual.' },
+    ] } ],
+    [ { title: 'Model', rows: [
+        { t: 'select', k: 'tpSpin', label: 'Spin style', opts: ['Off', 'Spin', 'Jitter', 'Backwards', 'Sideways'] },
+        { t: 'check', k: 'tpTuck', label: 'Look down while spinning' },
+        { t: 'range', k: 'headProt', label: 'Head hit reduction', min: 0, max: 100, step: 5, unit: '%' },
+        { t: 'range', k: 'tpSpinSpeed', label: 'Spin speed', min: 90, max: 2000, step: 10, unit: '°/s' },
+        { t: 'range', k: 'tpJit', label: 'Jitter angle', min: 5, max: 180, step: 5, unit: '°' },
+        { t: 'range', k: 'lagMs', label: 'Fake lag (choke)', min: 0, max: 400, step: 10, unit: 'ms' },
+        { t: 'range', k: 'lagJit', label: 'Lag jitter', min: 0, max: 150, step: 5, unit: 'ms' },
+      ] },
+      { title: 'Network', rows: [
+        { t: 'check', k: 'ping', label: 'Fake ping display' },
+        { t: 'range', k: 'pingBase', label: 'Ping', min: 1, max: 999, step: 1, unit: 'ms' },
+        { t: 'range', k: 'pingJit', label: 'Ping jitter', min: 0, max: 200, step: 1, unit: 'ms' },
+        { t: 'btn', label: 'Ping spike', fn: () => { pingSpike = 2; } },
+        { t: 'note', html: 'All of this is visual only: the bots always shoot at your real position.' },
+    ] } ],
+  ] },
+  { id: 'world', name: 'World', ico: 'globe', cols: [
+    [ { title: 'View', rows: [
+        { t: 'range', label: 'Field of view', min: 60, max: 130, step: 1, get: () => settings.fov, set: v => { settings.fov = v; saveSettings(); } },
+        { t: 'check', k: 'noFlash', label: 'Remove flashbang' },
+    ] } ],
+    [ { title: 'Entities', rows: [
+        { t: 'check', k: 'espDrops', label: 'Dropped weapons' },
+        { t: 'check', k: 'espBomb', label: 'Bomb position + timer' },
+    ] } ],
+  ] },
+  { g: 'MISCELLANEOUS' },
+  { id: 'move', name: 'Movement', ico: 'run', cols: [
+    [ { title: 'Movement', rows: [
+        { t: 'range', k: 'speed', label: 'Speed multiplier', min: 1, max: 4, step: 0.1, unit: '×' },
+        { t: 'range', k: 'gravity', label: 'Gravity', min: 0.1, max: 1, step: 0.05, unit: '×' },
+    ] } ],
+    [ { title: 'Bunny hop', rows: [
+        { t: 'check', k: 'autoHop', label: 'Auto bunnyhop' },
+        { t: 'check', k: 'autoStrafe', label: 'Auto strafe (speed gain)' },
+        { t: 'note', html: 'Auto strafe steers A / D from your mouse while you are airborne.' },
+      ] },
+      { title: 'Bomb', rows: [
+        { t: 'check', k: 'fastDefuse', label: 'Instant defuse / plant' },
+    ] } ],
+  ] },
+  { id: 'cheats', name: 'Player', ico: 'bolt', cols: [
+    [ { title: 'Survival', rows: [
+        { t: 'check', k: 'god', label: 'God mode' },
+        { t: 'check', k: 'ammo', label: 'Infinite ammo' },
+        { t: 'range', k: 'fastFire', label: 'Fire rate', min: 1, max: 5, step: 0.5, unit: '×' },
+      ] },
+      { title: 'Economy', rows: [
+        { t: 'check', k: 'money', label: 'Infinite money' },
+        { t: 'check', k: 'buyAny', label: 'Buy anywhere, anytime' },
+    ] } ],
+    [ { title: 'Bots', rows: [
+        { t: 'check', k: 'freeze', label: 'Freeze enemy bots' },
+        { t: 'btn', label: 'Kill all enemies', fn: () => {
+            if (state !== 'live') { msgFlash('Only works during a live round'); return; }
+            let n = 0; for (const b of cheatEnemies()) { killEntity(b, P, true, curW().id); n++; }
+            msgFlash(n + ' enemies eliminated');
+        } },
+        { t: 'btn', label: 'Heal + full armor', fn: () => { P.hp = 100; P.armor = 100; P.helmet = true; msgFlash('Healed'); } },
+        { t: 'btn', label: 'Max money', fn: () => { P.money = 16000; msgFlash('Money maxed'); } },
+    ] } ],
+  ] },
+  { id: 'cfg', name: 'Config', ico: 'cog', cols: [
+    [ { title: 'Menu', rows: [
+        { t: 'color', k: 'accent', label: 'Accent color' },
+        { t: 'check', k: 'watermark', label: 'Watermark' },
+        { t: 'check', k: 'binds', label: 'Active features list' },
+      ] },
+      { title: 'Presets', rows: [
+        { t: 'btn', label: 'Legit', fn: () => axPreset('Legit') },
+        { t: 'btn', label: 'Rage', fn: () => axPreset('Rage') },
+        { t: 'btn', label: 'Visuals only', fn: () => axPreset('Visuals only') },
+        { t: 'btn', label: 'Sandbox god', fn: () => axPreset('Sandbox god') },
+        { t: 'btn', label: 'All off', fn: () => axPreset('All off') },
+    ] } ],
+    [ { title: 'Config', rows: [
+        { t: 'btn', label: 'Save config', fn: () => msgFlash(axSave() ? 'Config saved' : 'Could not save (storage blocked)') },
+        { t: 'btn', label: 'Load config', fn: () => { msgFlash(axLoad() ? 'Config loaded' : 'No saved config'); axRefresh(); } },
+        { t: 'btn', label: 'Reset everything', fn: () => { Object.assign(cheat, CHEAT_DEFAULT); settings.fov = 75; axRefresh(); axSkin(); } },
+        { t: 'note', html: 'Single-player tool for fooling around with the bots.<br><b>INSERT</b> or <b>`</b> toggles this menu, <b>ESC</b> closes it.' },
+    ] } ],
+  ] },
 ];
-const cheatRefresh = [];
-function cheatHudUpdate() {
-  $('cheatHud').innerHTML = [['aim', 'AIMBOT', 'F1'], ['trig', 'TRIGGERBOT', 'F2'], ['esp', 'WALLHACK', 'F3']].map(a =>
-    '<div style="color:' + (cheat[a[0]] ? '#7dff7d' : '#888') + '">' + a[1] + ' [' + a[2] + '] ' + (cheat[a[0]] ? 'ON' : 'OFF') + '</div>').join('');
+const AX_ICO = {
+  aim: '<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="1.5"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>',
+  eye: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>',
+  run: '<circle cx="14" cy="5" r="2"/><path d="M6 21l3-6 3 2v4M9 15l-1-5 5-2 3 4 3 1M13 8l-2 4"/>',
+  bolt: '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+  cog: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',
+  cross: '<circle cx="12" cy="12" r="1.6"/><path d="M12 3v5M12 16v5M3 12h5M16 12h5"/>',
+  cam: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
+  save: '<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4M8 20v-6h8v6"/>',
+  search: '<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>',
+};
+const svg = n => '<svg viewBox="0 0 24 24">' + AX_ICO[n] + '</svg>';
+
+const AX_KEEP = ['accent', 'watermark', 'binds', 'crossStyle', 'crossCol', 'crossSize', 'crossThick', 'crossGap', 'crossOutline', 'crossDyn', 'espVisCol', 'espHidCol', 'chamCol', 'arrowCol'];
+const AX_PRESETS = {
+  'Legit': { aim: true, aimMode: 'While firing', aimHitbox: 'Chest', aimFov: 6, aimSmooth: 22, aimVisible: true, rcs: 60, trig: true, trigDelay: 110, radar: true },
+  'Rage': { aim: true, aimMode: 'Always', aimHitbox: 'Head', aimFov: 90, aimSmooth: 100, aimVisible: false, rcs: 100, noSpread: true, autoScope: true,
+    trig: true, esp: true, espSkel: true, espHead: true, espArrows: true, chams: true, radar: true, autoHop: true, autoStrafe: true, ammo: true, fastFire: 2, noFlash: true },
+  'Visuals only': { esp: true, espSkel: true, espHead: true, espArrows: true, espDrops: true, radar: true, noFlash: true },
+  'Sandbox god': { god: true, ammo: true, money: true, buyAny: true, speed: 1.8, gravity: 0.5, fastFire: 3, autoHop: true, autoStrafe: true, noFlash: true },
+  'All off': {},
+};
+function axPreset(name) {
+  for (const k in CHEAT_DEFAULT) if (!AX_KEEP.includes(k)) cheat[k] = CHEAT_DEFAULT[k];
+  Object.assign(cheat, AX_PRESETS[name]);
+  axRefresh(); msgFlash('Preset: ' + name);
 }
-(function buildCheatUI() {
-  const box = document.createElement('div'); box.id = 'cheats';
-  box.innerHTML = '<h3>CHEAT MENU</h3><div class="hint">Single-player only. Hotkeys work in game: F1 / F2 / F3.</div>';
-  CHEAT_DEFS.forEach(d => {
-    if (d.g) { const h = document.createElement('h4'); h.textContent = d.g; box.appendChild(h); }
-    const row = document.createElement('div'); row.className = 'row2';
-    const lab = document.createElement('span'); lab.textContent = d.label;
-    const right = document.createElement('span');
-    const inp = document.createElement('input'); inp.type = d.t === 'check' ? 'checkbox' : 'range';
-    if (d.t === 'range') { inp.min = d.min; inp.max = d.max; inp.step = d.step; }
-    const val = document.createElement('span'); val.className = 'val';
-    const show = () => { if (d.t === 'check') inp.checked = !!cheat[d.k]; else { inp.value = cheat[d.k]; val.textContent = String(cheat[d.k]); } };
-    inp.addEventListener('input', () => { cheat[d.k] = d.t === 'check' ? inp.checked : parseFloat(inp.value); show(); cheatHudUpdate(); });
-    cheatRefresh.push(show); show();
-    right.appendChild(inp); right.appendChild(val); row.appendChild(lab); row.appendChild(right); box.appendChild(row);
+
+// ---------------------------------------------------------------- menu construction
+const axEl = document.createElement('div'); axEl.id = 'ax';
+const axRefresh_ = [];
+function axRefresh() { axRefresh_.forEach(f => f()); axSkin(); axHud(); }
+function axSkin() { document.documentElement.style.setProperty('--axac', cheat.accent); }
+function axRowEl(d) {
+  const row = document.createElement('div'); row.className = 'axrow';
+  if (d.t === 'note') { row.className = 'axnote'; row.innerHTML = d.html; return row; }
+  if (d.t === 'btn') { row.className = 'axbtn'; row.textContent = d.label; row.dataset.q = d.label.toLowerCase(); row.addEventListener('click', d.fn); return row; }
+  row.dataset.q = d.label.toLowerCase();
+  const lab = document.createElement('span'); lab.className = 'lab'; lab.textContent = d.label;
+  if (d.hint) { const em = document.createElement('em'); em.textContent = d.hint; lab.appendChild(em); }
+  row.appendChild(lab);
+  const get = d.get || (() => cheat[d.k]), set = d.set || (v => { cheat[d.k] = v; });
+  const commit = v => { set(v); if (d.k) cheat[d.k] = v; axHud(); if (d.k === 'accent') axSkin(); };
+  if (d.t === 'check') {
+    const sw = document.createElement('div'); sw.className = 'axsw';
+    sw.addEventListener('click', () => { commit(!get()); show(); });
+    const show = () => sw.classList.toggle('on', !!get());
+    axRefresh_.push(show); show(); row.appendChild(sw);
+  } else if (d.t === 'range') {
+    const box = document.createElement('div'); box.className = 'axctl';
+    const inp = document.createElement('input'); inp.type = 'range'; inp.min = d.min; inp.max = d.max; inp.step = d.step;
+    const val = document.createElement('div'); val.className = 'axv';
+    const fmt = v => (Number.isInteger(+d.step) ? Math.round(v) : (+v).toFixed(2).replace(/0$/, '')) + (d.unit || '');
+    const show = () => { inp.value = get(); val.textContent = fmt(get()); inp.style.setProperty('--p', ((get() - d.min) / (d.max - d.min) * 100) + '%'); };
+    inp.addEventListener('input', () => { commit(parseFloat(inp.value)); show(); });
+    axRefresh_.push(show); show(); box.appendChild(inp); box.appendChild(val); row.appendChild(box);
+  } else if (d.t === 'select') {
+    const sel = document.createElement('select');
+    d.opts.forEach(o => { const op = document.createElement('option'); op.textContent = o; sel.appendChild(op); });
+    sel.addEventListener('change', () => commit(sel.value));
+    const show = () => { sel.value = get(); };
+    axRefresh_.push(show); show(); row.appendChild(sel);
+  } else if (d.t === 'color') {
+    const c = document.createElement('input'); c.type = 'color';
+    c.addEventListener('input', () => commit(c.value));
+    const show = () => { c.value = get(); };
+    axRefresh_.push(show); show(); row.appendChild(c);
+  }
+  return row;
+}
+(function buildAx() {
+  const side = document.createElement('div'); side.className = 'axside';
+  side.innerHTML = '<div class="axlogo" id="axDrag">A<span>X</span>IOM</div>';
+  const main = document.createElement('div'); main.className = 'axmain';
+  const top = document.createElement('div'); top.className = 'axtop'; top.id = 'axTop';
+  top.innerHTML = '<div class="axsave" id="axSaveBtn">' + svg('save') + 'Save</div><div class="axsp"></div><div class="axsearchw">' + svg('search') + '<input class="axsearch" id="axQ" placeholder="Search…" autocomplete="off" spellcheck="false"></div>';
+  const body = document.createElement('div'); body.className = 'axbody';
+  const empty = document.createElement('div'); empty.className = 'axempty'; empty.textContent = 'Nothing found';
+  const tabs = [], panes = [];
+  function select(i) { tabs.forEach((t, j) => t.classList.toggle('on', i === j)); panes.forEach((p, j) => p.classList.toggle('on', i === j)); try { localStorage.setItem('axiomTab', i); } catch (e) {} }
+  AX_TABS.forEach(def => {
+    if (def.g) { const g = document.createElement('div'); g.className = 'axgrp'; g.textContent = def.g; side.appendChild(g); return; }
+    const idx = tabs.length;
+    const t = document.createElement('div'); t.className = 'axtab'; t.innerHTML = svg(def.ico) + '<span>' + def.name + '</span>';
+    t.addEventListener('click', () => { $('axQ').value = ''; axSearch(''); select(idx); });
+    side.appendChild(t); tabs.push(t);
+    const pane = document.createElement('div'); pane.className = 'pane';
+    const cols = document.createElement('div'); cols.className = 'cols';
+    def.cols.forEach(cards => {
+      const col = document.createElement('div'); col.className = 'col';
+      cards.forEach(c => {
+        const card = document.createElement('div'); card.className = 'card';
+        const h = document.createElement('h5'); h.textContent = c.title; card.appendChild(h);
+        c.rows.forEach(r => card.appendChild(axRowEl(r)));
+        col.appendChild(card);
+      });
+      cols.appendChild(col);
+    });
+    pane.appendChild(cols); body.appendChild(pane); panes.push(pane);
   });
-  $('settings').after(box);
-  const btn = document.createElement('button'); btn.id = 'cheBtn'; btn.textContent = 'CHEATS';
-  $('setBtn').after(btn);
-  const closeCheats = () => { box.style.display = 'none'; btn.textContent = 'CHEATS'; };
-  btn.addEventListener('click', () => {
-    const open = box.style.display === 'block';
-    if (open) { closeCheats(); return; }
-    box.style.display = 'block'; btn.textContent = 'CLOSE CHEATS';
-    $('settings').style.display = 'none'; $('setBtn').textContent = 'SETTINGS';
-    $('keysBox').style.display = 'none'; $('ctlBtn').textContent = 'CONTROLS'; keysOpen = false;
-    cheatRefresh.forEach(f => f());
+  body.appendChild(empty);
+  const user = document.createElement('div'); user.className = 'axuser';
+  user.innerHTML = '<div class="axav">SP</div><div><div class="axun">Single-player</div><div class="axus">Press <b>INSERT</b> to hide</div></div>';
+  side.appendChild(user);
+  main.appendChild(top); main.appendChild(body);
+  axEl.appendChild(side); axEl.appendChild(main);
+  document.body.appendChild(axEl);
+  let start = 0; try { start = clamp(parseInt(localStorage.getItem('axiomTab') || '0', 10) || 0, 0, tabs.length - 1); } catch (e) {}
+  select(start);
+
+  // search: shows every matching row across all tabs
+  window.axSearch = function (q) {
+    q = q.trim().toLowerCase();
+    axEl.classList.toggle('searching', !!q);
+    let any = false;
+    axEl.querySelectorAll('.card').forEach(card => {
+      let vis = 0;
+      card.querySelectorAll('.axrow,.axbtn').forEach(r => { const m = !q || (r.dataset.q || '').includes(q); r.classList.toggle('hid', !m); if (m) vis++; });
+      const note = card.querySelector('.axnote'); if (note) note.style.display = q ? 'none' : '';
+      card.classList.toggle('hid', !!q && !vis);
+      if (!q || vis) any = true;
+    });
+    axEl.classList.toggle('none', !!q && !any);
+  };
+  $('axQ').addEventListener('input', e => axSearch(e.target.value));
+  $('axSaveBtn').addEventListener('click', () => msgFlash(axSave() ? 'Config saved' : 'Could not save (storage blocked)'));
+
+  // dragging by the top bar / logo
+  let drag = null;
+  const startDrag = e => {
+    if (e.target.closest('input,.axsave,select')) return;
+    const r = axEl.getBoundingClientRect(); drag = { dx: e.clientX - r.left, dy: e.clientY - r.top };
+  };
+  top.addEventListener('mousedown', startDrag); $('axDrag').addEventListener('mousedown', startDrag);
+  window.addEventListener('mousemove', e => {
+    if (!drag) return;
+    axEl.style.left = clamp(e.clientX - drag.dx, -axEl.offsetWidth + 80, window.innerWidth - 80) + 'px';
+    axEl.style.top = clamp(e.clientY - drag.dy, 0, window.innerHeight - 40) + 'px';
   });
-  $('setBtn').addEventListener('click', closeCheats);
-  $('ctlBtn').addEventListener('click', closeCheats);
+  window.addEventListener('mouseup', () => { drag = null; });
 })();
-cheatHudUpdate();
-window.addEventListener('keydown', e => {
-  const k = { F1: 'aim', F2: 'trig', F3: 'esp' }[e.code];
+
+// ---------------------------------------------------------------- watermark + active features list
+const wmEl = document.createElement('div'); wmEl.id = 'axWm'; wmEl.className = 'hud';
+const bindEl = document.createElement('div'); bindEl.id = 'axBinds'; bindEl.className = 'hud';
+document.body.appendChild(wmEl); document.body.appendChild(bindEl);
+function axHud() {
+  wmEl.style.display = cheat.watermark ? '' : 'none';
+  const rows = [
+    [cheat.aim, 'Aimbot', cheat.aimMode === 'Always' ? 'always' : 'holding'],
+    [cheat.trig, 'Triggerbot', 'ON'], [cheat.esp, 'Wallhack', 'ON'], [cheat.chams, 'Chams', 'ON'], [cheat.radar, 'Radar hack', 'ON'],
+    [cheat.rcs > 0, 'Recoil control', cheat.rcs + '%'], [cheat.noSpread, 'No spread', 'ON'], [cheat.tp, 'Third person', cheat.tpDist.toFixed(1) + 'm'], [cheat.tpSpin !== 'Off', 'Model spin', cheat.tpSpin], [cheat.tpSpin !== 'Off' && cheat.headProt > 0, 'Head protect', cheat.headProt + '%'], [cheat.lagMs > 0, 'Fake lag', cheat.lagMs + 'ms'], [cheat.ping, 'Fake ping', 'ON'], [cheat.autoHop, 'Bunnyhop', 'ON'], [cheat.autoStrafe, 'Auto strafe', 'ON'],
+    [cheat.god, 'God mode', 'ON'], [cheat.ammo, 'Infinite ammo', 'ON'], [cheat.fastFire > 1, 'Fire rate', cheat.fastFire + '×'],
+    [cheat.speed !== 1, 'Speed', cheat.speed.toFixed(1) + '×'], [cheat.gravity < 1, 'Gravity', cheat.gravity.toFixed(2) + '×'],
+    [cheat.freeze, 'Frozen bots', 'ON'],
+  ].filter(r => r[0]);
+  bindEl.classList.toggle('on', cheat.binds && rows.length > 0);
+  bindEl.innerHTML = '<div class="bt">Binds</div>' + rows.map(r => '<div class="br"><span>' + r[1] + '</span><span>' + r[2] + '</span></div>').join('');
+}
+let fpsAcc = 0, fpsN = 0, fpsShow = 0;
+function axFrame(dt) {
+  pingTick(dt);
+  $('cross').style.visibility = cheat.crossStyle === 'Off' ? '' : 'hidden';
+  fpsAcc += dt; fpsN++;
+  if (fpsAcc >= 0.5) { fpsShow = Math.round(fpsN / fpsAcc); fpsAcc = 0; fpsN = 0;
+    wmEl.innerHTML = '<b>AX<i>I</i>OM</b> &nbsp;|&nbsp; fps ' + fpsShow + (cheat.ping ? ' &nbsp;|&nbsp; ping ' + pingVal + 'ms' : '') + ' &nbsp;|&nbsp; INS = menu'; }
+}
+axSkin(); axHud();
+
+// ---------------------------------------------------------------- open / close
+let axOpen = false, axWasPaused = false, axPlaced = false;
+function axShowPause() {
+  $('ovInfo').textContent = 'PAUSED'; $('startBtn').textContent = 'RESUME';
+  overlay.classList.add('paused'); $('quitBtn').style.display = 'inline-block'; overlay.style.display = 'flex';
+}
+function axToggle(force) {
+  const want = force === undefined ? !axOpen : force;
+  if (want === axOpen) return;
+  axOpen = want;
+  axEl.style.display = want ? 'block' : 'none';
+  if (want) {
+    if (!axPlaced) {
+      axEl.style.left = Math.max(0, (window.innerWidth - axEl.offsetWidth) / 2) + 'px';
+      axEl.style.top = Math.max(0, (window.innerHeight - axEl.offsetHeight) / 2) + 'px';
+      axPlaced = true;
+    }
+    axWasPaused = paused || state === 'menu';
+    if (!axWasPaused) {
+      paused = true; keys.clear(); trigger = false;
+      if (document.pointerLockElement) document.exitPointerLock();
+    }
+    renderer.domElement.style.cursor = fakeLock ? 'default' : '';
+    axRefresh();
+  } else {
+    const q = $('axQ'); if (q) { q.blur(); }
+    if (!axWasPaused) {
+      if (fakeLock) { paused = false; renderer.domElement.style.cursor = 'none'; }
+      else {
+        tryLock();
+        setTimeout(() => { if (paused && !locked && !fakeLock && !axOpen && state !== 'menu') axShowPause(); }, 1300);
+      }
+    }
+  }
+}
+document.addEventListener('keydown', e => {
+  const typing = document.activeElement && document.activeElement.id === 'axQ';
+  if (axOpen && e.code === 'Escape') {
+    e.preventDefault(); e.stopImmediatePropagation();
+    if (typing && $('axQ').value) { $('axQ').value = ''; axSearch(''); } else axToggle(false);
+    return;
+  }
+  if (e.code === 'Insert' || (e.code === 'Backquote' && !typing)) { e.preventDefault(); e.stopImmediatePropagation(); axToggle(); return; }
+  if (typing) { e.stopImmediatePropagation(); return; }          // typing in the search box must not steer the game
+  const k = { F1: 'aim', F2: 'trig', F3: 'esp', F4: 'tp' }[e.code];
   if (!k || e.repeat) return;
   e.preventDefault();
-  cheat[k] = !cheat[k]; cheatHudUpdate(); cheatRefresh.forEach(f => f());
-  if (state !== 'menu') msgFlash({ aim: 'Aimbot', trig: 'Triggerbot', esp: 'Wallhack' }[k] + (cheat[k] ? ' ON' : ' OFF'));
+  cheat[k] = !cheat[k]; axRefresh();
+  if (state !== 'menu') msgFlash({ aim: 'Aimbot', trig: 'Triggerbot', esp: 'Wallhack', tp: 'Third person' }[k] + (cheat[k] ? ' ON' : ' OFF'));
 }, true);
+// pause screen button
+{
+  const b = document.createElement('button'); b.id = 'axBtn'; b.textContent = 'CHEAT MENU';
+  b.addEventListener('click', () => axToggle(true));
+  $('setBtn').after(b);
+}
 
 // ---------------------------------------------------------------- tsükkel
 let lastT = performance.now();
@@ -4461,7 +5119,7 @@ function loop(now) {
   try {
     if (state !== 'menu' && !paused) { cheatTick(dt); update(dt); }
     render(paused ? 0 : dt);
-    drawEsp();
+    drawEsp(); axFrame(dt);
   } catch (err) {
     console.error(err);
     const m = $('msg'); m.style.display = 'block'; m.style.fontSize = '16px'; m.textContent = 'ERROR: ' + err.message;
